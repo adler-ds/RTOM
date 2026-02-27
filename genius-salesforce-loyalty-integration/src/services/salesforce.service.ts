@@ -312,7 +312,7 @@ export class SalesforceLoyaltyService {
         ExternalTransactionNumber: externalTransactionNumber,
       };
 
-      const journalResult = await this.conn.sobject('TransactionJournal').create(journal);
+      const journalResult = await this.conn.sobject('TransactionJournal').create(journal) as any;
 
       if (!journalResult.success) {
         throw new Error('Failed to create redemption journal');
