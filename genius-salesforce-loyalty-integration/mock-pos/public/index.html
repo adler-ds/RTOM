@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Whataburger POS - Mock Terminal</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <h1>🍔 Whataburger POS</h1>
+                <p class="subtitle">Mock Terminal - Demo Mode</p>
+            </div>
+            <div class="header-info">
+                <span class="store-info">Store: <strong id="storeId">store_001</strong></span>
+                <span class="terminal-info">Terminal: <strong id="terminalId">terminal_001</strong></span>
+                <button class="btn btn-secondary" onclick="openSettings()">⚙️ Settings</button>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Left Panel - Product Menu -->
+            <div class="panel products-panel">
+                <h2>Menu</h2>
+                <div class="category-tabs">
+                    <button class="tab-btn active" onclick="filterCategory('all')">All</button>
+                    <button class="tab-btn" onclick="filterCategory('Burgers')">Burgers</button>
+                    <button class="tab-btn" onclick="filterCategory('Chicken')">Chicken</button>
+                    <button class="tab-btn" onclick="filterCategory('Sides')">Sides</button>
+                    <button class="tab-btn" onclick="filterCategory('Drinks')">Drinks</button>
+                </div>
+                <div id="productGrid" class="product-grid"></div>
+            </div>
+
+            <!-- Right Panel - Current Order -->
+            <div class="panel order-panel">
+                <h2>Current Order</h2>
+                
+                <!-- Customer Info -->
+                <div class="customer-section">
+                    <h3>Customer Info (Optional)</h3>
+                    <input type="tel" id="customerPhone" placeholder="Phone: 555-555-1234" />
+                    <input type="email" id="customerEmail" placeholder="Email: customer@example.com" />
+                    <div class="loyalty-preview" id="loyaltyPreview" style="display: none;">
+                        <div class="loyalty-badge">⭐ Loyalty Member</div>
+                        <div class="loyalty-info">
+                            <p><strong id="memberName"></strong></p>
+                            <p>Points: <strong id="memberPoints">0</strong></p>
+                            <p>Points to earn: <strong id="pointsToEarn">0</strong></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Order Items -->
+                <div class="order-items" id="orderItems">
+                    <p class="empty-cart">Cart is empty</p>
+                </div>
+
+                <!-- Order Summary -->
+                <div class="order-summary">
+                    <div class="summary-row">
+                        <span>Subtotal:</span>
+                        <span id="subtotal">$0.00</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Tax (8.25%):</span>
+                        <span id="tax">$0.00</span>
+                    </div>
+                    <div class="summary-row total">
+                        <span>Total:</span>
+                        <span id="total">$0.00</span>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="action-buttons">
+                    <button class="btn btn-danger" onclick="clearOrder()">Clear</button>
+                    <button class="btn btn-success" onclick="completeOrder()" id="completeBtn" disabled>
+                        Complete Sale
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Panel - Transaction History -->
+        <div class="panel transactions-panel">
+            <div class="panel-header">
+                <h2>Recent Transactions</h2>
+                <div>
+                    <button class="btn btn-small btn-secondary" onclick="loadTransactions()">🔄 Refresh</button>
+                    <button class="btn btn-small btn-danger" onclick="clearTransactions()">🗑️ Clear All</button>
+                </div>
+            </div>
+            <div id="transactionList" class="transaction-list"></div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>POS Settings</h2>
+                <button class="close-btn" onclick="closeSettings()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Store ID</label>
+                    <input type="text" id="settingsStoreId" />
+                </div>
+                <div class="form-group">
+                    <label>Terminal ID</label>
+                    <input type="text" id="settingsTerminalId" />
+                </div>
+                <div class="form-group">
+                    <label>Webhook URL</label>
+                    <input type="text" id="settingsWebhookUrl" />
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="settingsWebhookEnabled" />
+                        Enable Webhooks
+                    </label>
+                </div>
+                <div class="webhook-test">
+                    <button class="btn btn-secondary" onclick="testWebhook()">Test Webhook</button>
+                    <div id="webhookTestResult"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeSettings()">Cancel</button>
+                <button class="btn btn-primary" onclick="saveSettings()">Save Settings</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div id="successModal" class="modal">
+        <div class="modal-content success-modal">
+            <div class="success-icon">✓</div>
+            <h2>Transaction Complete!</h2>
+            <div id="successDetails"></div>
+            <button class="btn btn-primary" onclick="closeSuccessModal()">New Order</button>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

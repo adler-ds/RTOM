@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    container_name: genius-loyalty-integration
+    restart: unless-stopped
+    ports:
+      - "${PORT:-3000}:3000"
+    environment:
+      - NODE_ENV=production
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    env_file:
+      - .env
+    depends_on:
+      - redis
+    volumes:
+      - ./logs:/app/logs
+    networks:
+      - integration-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: integration-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - integration-network
+    command: redis-server --appendonly yes
+
+volumes:
+  redis-data:
+    driver: local
+
+networks:
+  integration-network:
+    driver: bridge
