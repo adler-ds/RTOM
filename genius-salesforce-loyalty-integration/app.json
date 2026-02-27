@@ -1,0 +1,149 @@
+{
+  "name": "Genius POS to Salesforce Loyalty Integration",
+  "description": "Production-ready integration service connecting Xenial Genius POS with Salesforce Loyalty Management",
+  "repository": "https://github.com/adler-ds/genius-salesforce-loyalty-integration",
+  "logo": "https://avatars.githubusercontent.com/u/adler-ds",
+  "keywords": [
+    "nodejs",
+    "typescript",
+    "salesforce",
+    "loyalty",
+    "pos",
+    "integration",
+    "genius-pos",
+    "webhook"
+  ],
+  "success_url": "/api/webhooks/health",
+  "scripts": {
+    "postdeploy": "echo 'Deployment successful! Configure your environment variables in Heroku dashboard.'"
+  },
+  "formation": {
+    "web": {
+      "quantity": 1,
+      "size": "basic"
+    }
+  },
+  "addons": [
+    {
+      "plan": "heroku-redis:mini",
+      "as": "REDIS"
+    }
+  ],
+  "buildpacks": [
+    {
+      "url": "heroku/nodejs"
+    }
+  ],
+  "env": {
+    "NODE_ENV": {
+      "description": "Node environment",
+      "value": "production",
+      "required": true
+    },
+    "PORT": {
+      "description": "Port for the application",
+      "value": "3000",
+      "required": false
+    },
+    "GENIUS_API_BASE_URL": {
+      "description": "Genius POS API base URL",
+      "value": "https://api.xenial.com/v1",
+      "required": true
+    },
+    "GENIUS_API_KEY": {
+      "description": "Your Genius POS API key",
+      "required": true
+    },
+    "GENIUS_STORE_ID": {
+      "description": "Your Genius POS store ID",
+      "required": true
+    },
+    "GENIUS_TERMINAL_ID": {
+      "description": "Your Genius POS terminal ID",
+      "value": "terminal_001",
+      "required": false
+    },
+    "SALESFORCE_LOGIN_URL": {
+      "description": "Salesforce login URL",
+      "value": "https://login.salesforce.com",
+      "required": true
+    },
+    "SALESFORCE_USERNAME": {
+      "description": "Salesforce integration user username",
+      "required": true
+    },
+    "SALESFORCE_PASSWORD": {
+      "description": "Salesforce integration user password",
+      "required": true
+    },
+    "SALESFORCE_SECURITY_TOKEN": {
+      "description": "Salesforce security token",
+      "required": true
+    },
+    "SALESFORCE_CLIENT_ID": {
+      "description": "Salesforce Connected App Client ID",
+      "required": true
+    },
+    "SALESFORCE_CLIENT_SECRET": {
+      "description": "Salesforce Connected App Client Secret",
+      "required": true
+    },
+    "SALESFORCE_LOYALTY_PROGRAM_NAME": {
+      "description": "Name of your Salesforce Loyalty Program",
+      "value": "Rewards Program",
+      "required": true
+    },
+    "SALESFORCE_CURRENCY_ISO_CODE": {
+      "description": "Currency code for transactions",
+      "value": "USD",
+      "required": false
+    },
+    "POINTS_PER_DOLLAR": {
+      "description": "Points awarded per dollar spent",
+      "value": "10",
+      "required": false
+    },
+    "MINIMUM_TRANSACTION_FOR_POINTS": {
+      "description": "Minimum transaction amount to earn points",
+      "value": "1.00",
+      "required": false
+    },
+    "SYNC_INTERVAL_MINUTES": {
+      "description": "Polling interval for sync (minutes)",
+      "value": "5",
+      "required": false
+    },
+    "ENABLE_REAL_TIME_SYNC": {
+      "description": "Enable real-time webhook processing",
+      "value": "true",
+      "required": false
+    },
+    "RETRY_ATTEMPTS": {
+      "description": "Number of retry attempts for failed jobs",
+      "value": "3",
+      "required": false
+    },
+    "RETRY_DELAY_MS": {
+      "description": "Delay between retries (milliseconds)",
+      "value": "1000",
+      "required": false
+    },
+    "LOG_LEVEL": {
+      "description": "Logging level (error, warn, info, debug)",
+      "value": "info",
+      "required": false
+    },
+    "REDIS_HOST": {
+      "description": "Redis host (auto-configured by Heroku Redis addon)",
+      "required": false
+    },
+    "REDIS_PORT": {
+      "description": "Redis port (auto-configured by Heroku Redis addon)",
+      "required": false
+    },
+    "REDIS_PASSWORD": {
+      "description": "Redis password (auto-configured by Heroku Redis addon)",
+      "required": false
+    }
+  }
+}

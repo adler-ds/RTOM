@@ -27,9 +27,9 @@ export const config: IntegrationConfig = {
   retryAttempts: parseInt(process.env.RETRY_ATTEMPTS || '3', 10),
   retryDelayMs: parseInt(process.env.RETRY_DELAY_MS || '1000', 10),
   
-  redisHost: process.env.REDIS_HOST || 'localhost',
-  redisPort: parseInt(process.env.REDIS_PORT || '6379', 10),
-  redisPassword: process.env.REDIS_PASSWORD || undefined,
+  redisHost: process.env.REDIS_HOST || process.env.REDIS_URL?.split(':')[1]?.replace('//', '') || 'localhost',
+  redisPort: parseInt(process.env.REDIS_PORT || process.env.REDIS_URL?.split(':')[2]?.split('/')[0] || '6379', 10),
+  redisPassword: process.env.REDIS_PASSWORD || process.env.REDIS_URL?.split(':')[2]?.split('@')[0] || undefined,
 };
 
 export function validateConfig(): void {

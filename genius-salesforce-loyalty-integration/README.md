@@ -158,6 +158,21 @@ npm start
 docker-compose up -d
 ```
 
+### Deploy to Heroku
+
+One-click deploy:
+
+[![Deploy to Heroku](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/adler-ds/genius-salesforce-loyalty-integration)
+
+Or use Heroku CLI:
+```bash
+heroku create your-app-name
+heroku addons:create heroku-redis:mini
+git push heroku main
+```
+
+See `docs/HEROKU_DEPLOYMENT.md` for complete instructions.
+
 ## API Endpoints
 
 ### Webhook Endpoints
