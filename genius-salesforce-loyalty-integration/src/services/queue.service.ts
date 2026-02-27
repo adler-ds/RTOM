@@ -17,6 +17,8 @@ const redisOptions = {
   }),
 };
 
+console.log('Queue service Redis options:', JSON.stringify(redisOptions, null, 2));
+
 export class QueueService {
   private transactionQueue: Queue.Queue;
   private integrationService: IntegrationService;
