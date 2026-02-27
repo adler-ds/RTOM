@@ -19,7 +19,7 @@ export class AdminController {
     this.router.post('/sync/historical', this.triggerHistoricalSync.bind(this));
   }
 
-  private async getQueueStats(req: Request, res: Response): Promise<void> {
+  private async getQueueStats(_req: Request, res: Response): Promise<void> {
     try {
       const stats = await this.queueService.getQueueStats();
       res.json({

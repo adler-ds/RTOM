@@ -9,7 +9,7 @@ import { WebhookController } from './controllers/webhook.controller';
 import { LoyaltyController } from './controllers/loyalty.controller';
 import { AdminController } from './controllers/admin.controller';
 import { logger } from './utils/logger';
-import { config, validateConfig } from './config/config';
+import { validateConfig } from './config/config';
 
 export class App {
   public app: Express;
@@ -61,7 +61,7 @@ export class App {
 
     this.app.use('/api/', limiter);
 
-    this.app.use((req: Request, res: Response, next: NextFunction) => {
+    this.app.use((req: Request, _res: Response, next: NextFunction) => {
       logger.info('Incoming request', {
         method: req.method,
         path: req.path,
@@ -72,7 +72,7 @@ export class App {
   }
 
   private setupRoutes(): void {
-    this.app.get('/', (req: Request, res: Response) => {
+    this.app.get('/', (_req: Request, res: Response) => {
       res.json({
         service: 'Genius POS to Salesforce Loyalty Integration',
         version: '1.0.0',
@@ -93,7 +93,7 @@ export class App {
     const adminController = new AdminController(this.queueService);
     this.app.use('/api/admin', adminController.router);
 
-    this.app.use('*', (req: Request, res: Response) => {
+    this.app.use('*', (_req: Request, res: Response) => {
       res.status(404).json({
         success: false,
         error: 'Endpoint not found',
@@ -102,7 +102,7 @@ export class App {
   }
 
   private setupErrorHandling(): void {
-    this.app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+    this.app.use((err: Error, req: Request, res: Response, _next: NextFunction) => {
       logger.error('Unhandled error', {
         error: err.message,
         stack: err.stack,

@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Space Cloud - The future of space tourism CRM management. Manage astronaut records, flight manifests, and sales pipelines.">
+    <title>Space Cloud - Space Tourism CRM</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <main class="landing">
+        <div class="landing__container">
+            <div class="landing__content">
+                <header class="landing__header">
+                    <h1 class="landing__logo">Space Cloud</h1>
+                    <p class="landing__subtitle">The future of space tourism CRM management</p>
+                </header>
+                
+                <section class="landing__form-section">
+                    <div class="card">
+                        <div class="card__header">
+                            <h2 class="card__title">Welcome to Space Cloud</h2>
+                        </div>
+                        
+                        <div class="card__content">
+                            <div class="alert alert--info" role="alert">
+                                <h3>🚀 Demo Mode</h3>
+                                <p>This is a functional prototype demonstrating the Space Cloud platform. Click "Launch Demo" to explore the full application.</p>
+                                <div class="demo-credentials">
+                                    <strong>Demo User:</strong> Dr. Eva Rostova (Experience Architect)
+                                </div>
+                            </div>
+
+                            <form class="role-selector" role="radiogroup" aria-labelledby="role-selector-label">
+                                <h3 id="role-selector-label" class="sr-only">Select your role</h3>
+                                
+                                <label class="role-option role-option--selected" for="role-experience-architect">
+                                    <input type="radio" name="role" id="role-experience-architect" value="experience-architect" checked class="sr-only">
+                                    <h4>👨‍🚀 Experience Architect</h4>
+                                    <p>Customer journey management</p>
+                                </label>
+                                
+                                <label class="role-option" for="role-guardian-of-safety">
+                                    <input type="radio" name="role" id="role-guardian-of-safety" value="guardian-of-safety" class="sr-only">
+                                    <h4>🛡️ Guardian of Safety</h4>
+                                    <p>Safety & compliance</p>
+                                </label>
+                                
+                                <label class="role-option" for="role-growth-catalyst">
+                                    <input type="radio" name="role" id="role-growth-catalyst" value="growth-catalyst" class="sr-only">
+                                    <h4>💰 Growth Catalyst</h4>
+                                    <p>Sales & revenue</p>
+                                </label>
+                            </form>
+
+                            <button class="btn btn--primary btn--lg btn--full" onclick="launchDemo()" type="button">
+                                🚀 Launch Demo
+                            </button>
+
+                            <div class="text-center mt-lg">
+                                <small class="text-muted">
+                                    Experience the complete Space Cloud platform
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="landing__features" aria-labelledby="features-heading">
+                    <h2 id="features-heading" class="sr-only">Key Features</h2>
+                    <div class="features-grid">
+                        <article class="feature-card">
+                            <div class="feature-card__icon" aria-hidden="true">👨‍🚀</div>
+                            <h3 class="feature-card__title">Astronaut Records</h3>
+                            <p class="feature-card__description">360-degree customer profiles with journey timelines and communication history</p>
+                        </article>
+                        
+                        <article class="feature-card">
+                            <div class="feature-card__icon" aria-hidden="true">📋</div>
+                            <h3 class="feature-card__title">Clearance Tracker</h3>
+                            <p class="feature-card__description">Medical and safety clearance workflows with full audit trails</p>
+                        </article>
+                        
+                        <article class="feature-card">
+                            <div class="feature-card__icon" aria-hidden="true">🚀</div>
+                            <h3 class="feature-card__title">Flight Manifest</h3>
+                            <p class="feature-card__description">Visual seat management and flight scheduling for space missions</p>
+                        </article>
+                        
+                        <article class="feature-card">
+                            <div class="feature-card__icon" aria-hidden="true">💰</div>
+                            <h3 class="feature-card__title">Sales Pipeline</h3>
+                            <p class="feature-card__description">Specialized sales process for space tourism prospects</p>
+                        </article>
+                        
+                        <article class="feature-card">
+                            <div class="feature-card__icon" aria-hidden="true">⏳</div>
+                            <h3 class="feature-card__title">Waitlist Management</h3>
+                            <p class="feature-card__description">Lead nurturing and segmentation for interested prospects</p>
+                        </article>
+                        
+                        <article class="feature-card">
+                            <div class="feature-card__icon" aria-hidden="true">🤖</div>
+                            <h3 class="feature-card__title">AI Integration</h3>
+                            <p class="feature-card__description">AI agents for clearance monitoring and journey synthesis</p>
+                        </article>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </main>
+
+    <script src="script.js"></script>
+    <script>
+        // Landing page specific functionality
+        document.addEventListener('DOMContentLoaded', () => {
+            // Role selector functionality
+            const roleOptions = document.querySelectorAll('.role-option');
+            const roleInputs = document.querySelectorAll('input[name="role"]');
+            
+            roleInputs.forEach(input => {
+                input.addEventListener('change', () => {
+                    // Remove selected class from all options
+                    roleOptions.forEach(option => option.classList.remove('role-option--selected'));
+                    // Add selected class to checked option's label
+                    const checkedLabel = document.querySelector(`label[for="${input.id}"]`);
+                    if (checkedLabel) {
+                        checkedLabel.classList.add('role-option--selected');
+                    }
+                });
+            });
+        });
+
+        function launchDemo() {
+            const selectedRole = document.querySelector('input[name="role"]:checked').value;
+            
+            // Update the current user role in the global state
+            if (window.SpaceCloud) {
+                window.SpaceCloud.currentUser.role = selectedRole;
+            }
+            
+            // Redirect to dashboard
+            window.location.href = 'dashboard.html';
+        }
+
+        // Add keyboard shortcut to launch demo
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && e.ctrlKey) {
+                e.preventDefault();
+                launchDemo();
+            }
+        });
+    </script>
+</body>
+</html>

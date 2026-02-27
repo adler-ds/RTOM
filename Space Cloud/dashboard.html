@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Space Cloud Dashboard - Manage astronaut records, flight manifests, and sales pipelines for space tourism.">
+    <title>Dashboard - Space Cloud</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header" role="banner">
+        <div class="container">
+            <div class="header__content">
+                <a href="dashboard.html" class="header__logo" aria-label="Space Cloud Home">
+                    <div class="header__logo-icon" aria-hidden="true">SC</div>
+                    <span>Space Cloud</span>
+                </a>
+                
+                <nav class="header__nav" role="navigation" aria-label="Main navigation">
+                    <a href="dashboard.html" class="header__nav-link header__nav-link--active" aria-current="page">Dashboard</a>
+                    <a href="astronaut-record.html" class="header__nav-link">Astronaut Records</a>
+                    <a href="clearance-tracker.html" class="header__nav-link">Clearance Tracker</a>
+                    <a href="flight-manifest.html" class="header__nav-link">Flight Manifest</a>
+                    <a href="sales-pipeline.html" class="header__nav-link">Sales Pipeline</a>
+                </nav>
+                
+                <div class="header__user-menu" role="button" tabindex="0" aria-label="User menu">
+                    <div class="header__user-avatar" aria-hidden="true">ER</div>
+                    <span>Dr. Eva Rostova</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" role="complementary" aria-label="Navigation sidebar">
+        <div class="sidebar__section">
+            <div class="sidebar__title">Overview</div>
+            <ul class="sidebar__menu" role="list">
+                <li class="sidebar__item" role="listitem">
+                    <a href="dashboard.html" class="sidebar__link sidebar__link--active" aria-current="page">
+                        <span class="sidebar__icon" aria-hidden="true">📊</span>
+                        Dashboard
+                    </a>
+                </li>
+                <li class="sidebar__item" role="listitem">
+                    <a href="astronaut-record.html" class="sidebar__link">
+                        <span class="sidebar__icon" aria-hidden="true">👨‍🚀</span>
+                        Astronaut Records
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <div class="sidebar__section">
+            <div class="sidebar__title">Operations</div>
+            <ul class="sidebar__menu" role="list">
+                <li class="sidebar__item" role="listitem">
+                    <a href="clearance-tracker.html" class="sidebar__link">
+                        <span class="sidebar__icon" aria-hidden="true">📋</span>
+                        Clearance Tracker
+                    </a>
+                </li>
+                <li class="sidebar__item" role="listitem">
+                    <a href="flight-manifest.html" class="sidebar__link">
+                        <span class="sidebar__icon" aria-hidden="true">🚀</span>
+                        Flight Manifest
+                    </a>
+                </li>
+                <li class="sidebar__item" role="listitem">
+                    <a href="waitlist.html" class="sidebar__link">
+                        <span class="sidebar__icon" aria-hidden="true">⏳</span>
+                        Waitlist
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <div class="sidebar__section">
+            <div class="sidebar__title">Sales & Marketing</div>
+            <ul class="sidebar__menu" role="list">
+                <li class="sidebar__item" role="listitem">
+                    <a href="sales-pipeline.html" class="sidebar__link">
+                        <span class="sidebar__icon" aria-hidden="true">💰</span>
+                        Sales Pipeline
+                    </a>
+                </li>
+                <li class="sidebar__item" role="listitem">
+                    <a href="#" class="sidebar__link">
+                        <span class="sidebar__icon" aria-hidden="true">📈</span>
+                        Reports
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <div class="sidebar__section">
+            <div class="sidebar__title">Settings</div>
+            <ul class="sidebar__menu" role="list">
+                <li class="sidebar__item" role="listitem">
+                    <a href="#" class="sidebar__link">
+                        <span class="sidebar__icon" aria-hidden="true">⚙️</span>
+                        Preferences
+                    </a>
+                </li>
+                <li class="sidebar__item" role="listitem">
+                    <a href="#" class="sidebar__link">
+                        <span class="sidebar__icon" aria-hidden="true">👥</span>
+                        Team
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content" role="main">
+        <div class="container">
+            <!-- Page Header -->
+            <header class="page-header">
+                <h1 class="page-header__title">Dashboard</h1>
+                <p class="page-header__subtitle">Welcome back, Dr. Eva Rostova. Here's your overview for today.</p>
+                <div class="page-header__actions">
+                    <button class="btn btn--primary" type="button">
+                        <span aria-hidden="true">📊</span>
+                        Generate Report
+                    </button>
+                    <button class="btn btn--secondary" type="button">
+                        <span aria-hidden="true">⚡</span>
+                        Quick Actions
+                    </button>
+                </div>
+            </header>
+
+            <!-- AI Agent Alert -->
+            <div class="alert alert--info" role="alert">
+                <h3>🤖 AI Agent Notification</h3>
+                <p>Agentforce has detected 3 clearance workflows requiring attention. <a href="clearance-tracker.html">Review now</a></p>
+            </div>
+
+            <!-- Dashboard Stats -->
+            <section class="stats-grid" aria-labelledby="stats-heading">
+                <h2 id="stats-heading" class="sr-only">Dashboard Statistics</h2>
+                <div class="stat-card">
+                    <div class="stat-card__number" id="total-astronauts">0</div>
+                    <div class="stat-card__label">Total Astronauts</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card__number" id="active-flights">0</div>
+                    <div class="stat-card__label">Active Flights</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card__number" id="pending-clearances">0</div>
+                    <div class="stat-card__label">Pending Clearances</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card__number" id="revenue">$0</div>
+                    <div class="stat-card__label">Monthly Revenue</div>
+                </div>
+            </section>
+
+            <!-- Role-Based Content -->
+            <div class="grid grid--2" style="gap: var(--spacing-2xl);">
+                <!-- Experience Architect Content -->
+                <section class="card" data-role="experience-architect" aria-labelledby="experience-architect-heading">
+                    <div class="card__header">
+                        <h2 id="experience-architect-heading" class="card__title">👨‍🚀 Experience Architect</h2>
+                        <span class="badge badge--primary">Active</span>
+                    </div>
+                    <div class="card__content">
+                        <p>Focus on customer journey optimization and astronaut experience enhancement.</p>
+                        <div class="mt-lg">
+                            <h3>Recent Activities</h3>
+                            <ul class="timeline">
+                                <li class="timeline__item">
+                                    <div class="timeline__content">
+                                        <div class="timeline__date">2 hours ago</div>
+                                        <p>Updated communication preferences for Astronaut #A-001</p>
+                                    </div>
+                                </li>
+                                <li class="timeline__item">
+                                    <div class="timeline__content">
+                                        <div class="timeline__date">4 hours ago</div>
+                                        <p>Scheduled pre-flight briefing for Mission Alpha</p>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Guardian of Safety Content -->
+                <section class="card hidden" data-role="guardian-of-safety" aria-labelledby="guardian-of-safety-heading">
+                    <div class="card__header">
+                        <h2 id="guardian-of-safety-heading" class="card__title">🛡️ Guardian of Safety</h2>
+                        <span class="badge badge--warning">Critical</span>
+                    </div>
+                    <div class="card__content">
+                        <p>Monitor safety protocols and compliance requirements.</p>
+                        <div class="mt-lg">
+                            <h3>Safety Alerts</h3>
+                            <ul class="timeline">
+                                <li class="timeline__item">
+                                    <div class="timeline__content">
+                                        <div class="timeline__date">1 hour ago</div>
+                                        <p>Medical clearance expired for Astronaut #A-003</p>
+                                    </div>
+                                </li>
+                                <li class="timeline__item">
+                                    <div class="timeline__content">
+                                        <div class="timeline__date">3 hours ago</div>
+                                        <p>Safety protocol review completed for Mission Beta</p>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Growth Catalyst Content -->
+                <section class="card hidden" data-role="growth-catalyst" aria-labelledby="growth-catalyst-heading">
+                    <div class="card__header">
+                        <h2 id="growth-catalyst-heading" class="card__title">💰 Growth Catalyst</h2>
+                        <span class="badge badge--success">Growing</span>
+                    </div>
+                    <div class="card__content">
+                        <p>Drive revenue growth and market expansion strategies.</p>
+                        <div class="mt-lg">
+                            <h3>Sales Highlights</h3>
+                            <ul class="timeline">
+                                <li class="timeline__item">
+                                    <div class="timeline__content">
+                                        <div class="timeline__date">30 minutes ago</div>
+                                        <p>New prospect added to pipeline: Tech Executive</p>
+                                    </div>
+                                </li>
+                                <li class="timeline__item">
+                                    <div class="timeline__content">
+                                        <div class="timeline__date">2 hours ago</div>
+                                        <p>Contract signed for Mission Gamma ($2.5M)</p>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Recent Activity -->
+            <section class="card mt-xl" aria-labelledby="recent-activity-heading">
+                <div class="card__header">
+                    <h2 id="recent-activity-heading" class="card__title">Recent Activity</h2>
+                    <button class="btn btn--secondary btn--sm" type="button">View All</button>
+                </div>
+                <div class="card__content">
+                    <div class="timeline">
+                        <div class="timeline__item">
+                            <div class="timeline__content">
+                                <div class="timeline__date">10 minutes ago</div>
+                                <p>Dr. Eva Rostova updated astronaut profile for <strong>Commander Sarah Chen</strong></p>
+                            </div>
+                        </div>
+                        <div class="timeline__item">
+                            <div class="timeline__content">
+                                <div class="timeline__date">1 hour ago</div>
+                                <p>Flight manifest updated for <strong>Mission Alpha</strong> - Launch scheduled for March 15</p>
+                            </div>
+                        </div>
+                        <div class="timeline__item">
+                            <div class="timeline__content">
+                                <div class="timeline__date">3 hours ago</div>
+                                <p>Medical clearance approved for <strong>Astronaut #A-002</strong></p>
+                            </div>
+                        </div>
+                        <div class="timeline__item">
+                            <div class="timeline__content">
+                                <div class="timeline__date">5 hours ago</div>
+                                <p>New prospect added to sales pipeline: <strong>Space Tourism Corp</strong></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Quick Actions -->
+            <section class="card mt-xl" aria-labelledby="quick-actions-heading">
+                <div class="card__header">
+                    <h2 id="quick-actions-heading" class="card__title">Quick Actions</h2>
+                </div>
+                <div class="card__content">
+                    <div class="grid grid--4" style="gap: var(--spacing-md);">
+                        <a href="astronaut-record.html" class="btn btn--secondary btn--full" role="button">
+                            <span aria-hidden="true">👨‍🚀</span>
+                            Add Astronaut
+                        </a>
+                        <a href="clearance-tracker.html" class="btn btn--secondary btn--full" role="button">
+                            <span aria-hidden="true">📋</span>
+                            Review Clearances
+                        </a>
+                        <a href="flight-manifest.html" class="btn btn--secondary btn--full" role="button">
+                            <span aria-hidden="true">🚀</span>
+                            Schedule Flight
+                        </a>
+                        <a href="sales-pipeline.html" class="btn btn--secondary btn--full" role="button">
+                            <span aria-hidden="true">💰</span>
+                            Add Prospect
+                        </a>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Upcoming Flights -->
+            <section class="card mt-xl" aria-labelledby="upcoming-flights-heading">
+                <div class="card__header">
+                    <h2 id="upcoming-flights-heading" class="card__title">Upcoming Flights</h2>
+                    <a href="flight-manifest.html" class="btn btn--primary btn--sm">View All</a>
+                </div>
+                <div class="card__content">
+                    <div class="table__responsive">
+                        <table class="table" role="table" aria-labelledby="upcoming-flights-heading">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Mission</th>
+                                    <th scope="col">Date</th>
+                                    <th scope="col">Astronauts</th>
+                                    <th scope="col">Status</th>
+                                    <th scope="col">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="upcoming-flights-table">
+                                <!-- Populated by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>

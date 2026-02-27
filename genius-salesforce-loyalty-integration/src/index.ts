@@ -1,7 +1,6 @@
 import { App } from './app';
 import { logger } from './utils/logger';
 import fs from 'fs';
-import path from 'path';
 
 const logDir = process.env.LOG_FILE_PATH || './logs';
 if (!fs.existsSync(logDir)) {

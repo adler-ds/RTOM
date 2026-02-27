@@ -6,12 +6,10 @@ import Joi from 'joi';
 
 export class WebhookController {
   public router: Router;
-  private integrationService: IntegrationService;
   private queueService: QueueService;
 
-  constructor(integrationService: IntegrationService, queueService: QueueService) {
+  constructor(_integrationService: IntegrationService, queueService: QueueService) {
     this.router = Router();
-    this.integrationService = integrationService;
     this.queueService = queueService;
     this.setupRoutes();
   }
@@ -115,7 +113,7 @@ export class WebhookController {
     }
   }
 
-  private async healthCheck(req: Request, res: Response): Promise<void> {
+  private async healthCheck(_req: Request, res: Response): Promise<void> {
     try {
       const queueStats = await this.queueService.getQueueStats();
 

@@ -1,5 +1,4 @@
 import Queue from 'bull';
-import Redis from 'ioredis';
 import { config } from '../config/config';
 import { logger } from '../utils/logger';
 import { IntegrationService } from './integration.service';

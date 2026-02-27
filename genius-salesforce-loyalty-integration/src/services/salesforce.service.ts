@@ -2,10 +2,7 @@ import jsforce from 'jsforce';
 import { config } from '../config/config';
 import { logger } from '../utils/logger';
 import {
-  SalesforceLoyaltyMember,
-  SalesforceLoyaltyTransaction,
   SalesforceTransactionJournal,
-  SalesforceLoyaltyLedger,
   SalesforceVoucher,
   LoyaltyProcessResponse,
   MemberLookupResponse,
