@@ -1,1 +1,6 @@
+# Heroku Node.js Buildpack Configuration
+
 web: node dist/index.js
+
+# Optional: Release phase (runs before dyno start)
+# release: node scripts/migrate.js

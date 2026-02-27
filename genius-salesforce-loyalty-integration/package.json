@@ -8,13 +8,17 @@
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
     "build": "tsc",
     "heroku-postbuild": "npm run build",
+    "postinstall": "npm run build",
     "test": "jest",
     "lint": "eslint . --ext .ts"
   },
   "engines": {
     "node": "18.x",
-    "npm": "9.x"
+    "npm": ">=9.0.0"
   },
+  "cacheDirectories": [
+    "node_modules"
+  ],
   "keywords": [
     "genius-pos",
     "salesforce-loyalty",
@@ -36,7 +40,8 @@
     "bull": "^4.12.0",
     "ioredis": "^5.3.2",
     "joi": "^17.12.1",
-    "date-fns": "^3.3.1"
+    "date-fns": "^3.3.1",
+    "typescript": "^5.3.3"
   },
   "devDependencies": {
     "@types/express": "^4.17.21",
@@ -47,9 +52,10 @@
     "@typescript-eslint/parser": "^6.20.0",
     "eslint": "^8.56.0",
     "ts-node-dev": "^2.0.0",
-    "typescript": "^5.3.3",
     "jest": "^29.7.0",
     "@types/jest": "^29.5.12",
     "ts-jest": "^29.1.2"
-  }
+  },
+  "dependencies-dev-note": "TypeScript is in dependencies (not devDependencies) for Heroku build",
+  "heroku-run-build-script": true
 }
