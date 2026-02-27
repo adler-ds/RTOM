@@ -12,13 +12,15 @@ function parseRedisUrl(redisUrl?: string): { host?: string; port?: string; passw
     const url = new URL(redisUrl);
     return {
       host: url.hostname,
-      port: url.port,
+      port: url.port || (redisUrl.startsWith('rediss://') ? '6380' : '6379'),
       password: url.password || undefined,
     };
   } catch (error) {
     return {};
   }
 }
+
+const parsedRedis = parseRedisUrl(process.env.REDIS_URL);
 
 export const config: IntegrationConfig = {
   geniusApiBaseUrl: process.env.GENIUS_API_BASE_URL || 'https://api.xenial.com/v1',
@@ -44,9 +46,9 @@ export const config: IntegrationConfig = {
   retryAttempts: parseInt(process.env.RETRY_ATTEMPTS || '3', 10),
   retryDelayMs: parseInt(process.env.RETRY_DELAY_MS || '1000', 10),
   
-  redisHost: process.env.REDIS_HOST || parseRedisUrl(process.env.REDIS_URL).host || 'localhost',
-  redisPort: parseInt(process.env.REDIS_PORT || parseRedisUrl(process.env.REDIS_URL).port || '6379', 10),
-  redisPassword: process.env.REDIS_PASSWORD || parseRedisUrl(process.env.REDIS_URL).password,
+  redisHost: process.env.REDIS_HOST || parsedRedis.host || 'localhost',
+  redisPort: parseInt(process.env.REDIS_PORT || parsedRedis.port || '6379', 10),
+  redisPassword: process.env.REDIS_PASSWORD || parsedRedis.password,
   redisTls: process.env.REDIS_URL?.startsWith('rediss://') ? true : undefined,
 };
 
