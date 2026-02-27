@@ -10,17 +10,26 @@ function parseRedisUrl(redisUrl?: string): { host?: string; port?: string; passw
   
   try {
     const url = new URL(redisUrl);
-    return {
+    const result = {
       host: url.hostname,
       port: url.port || (redisUrl.startsWith('rediss://') ? '6380' : '6379'),
       password: url.password || undefined,
     };
+    console.log('Parsed Redis URL:', JSON.stringify(result));
+    return result;
   } catch (error) {
+    console.error('Failed to parse Redis URL:', error);
     return {};
   }
 }
 
 const parsedRedis = parseRedisUrl(process.env.REDIS_URL);
+console.log('Final Redis config:', {
+  host: parsedRedis.host,
+  port: parsedRedis.port,
+  hasPassword: !!parsedRedis.password,
+  redisUrl: process.env.REDIS_URL ? 'set' : 'not set',
+});
 
 export const config: IntegrationConfig = {
   geniusApiBaseUrl: process.env.GENIUS_API_BASE_URL || 'https://api.xenial.com/v1',
@@ -51,6 +60,13 @@ export const config: IntegrationConfig = {
   redisPassword: process.env.REDIS_PASSWORD || parsedRedis.password,
   redisTls: process.env.REDIS_URL?.startsWith('rediss://') ? true : undefined,
 };
+
+console.log('Redis connection config:', {
+  host: config.redisHost,
+  port: config.redisPort,
+  hasPassword: !!config.redisPassword,
+  useTls: config.redisTls,
+});
 
 export function validateConfig(): void {
   const requiredFields: (keyof IntegrationConfig)[] = [
