@@ -250,7 +250,7 @@ export class SalesforceLoyaltyService {
         Points: points,
       };
 
-      const ledgerResult = await this.conn.sobject('LoyaltyLedger').create(ledger);
+      const ledgerResult = await this.conn.sobject('LoyaltyLedger').create(ledger) as any;
 
       if (!ledgerResult.success) {
         throw new Error('Failed to create loyalty ledger entry');
@@ -326,7 +326,7 @@ export class SalesforceLoyaltyService {
         Points: -points,
       };
 
-      const ledgerResult = await this.conn.sobject('LoyaltyLedger').create(ledger);
+      const ledgerResult = await this.conn.sobject('LoyaltyLedger').create(ledger) as any;
 
       if (!ledgerResult.success) {
         throw new Error('Failed to create redemption ledger entry');
@@ -373,7 +373,7 @@ export class SalesforceLoyaltyService {
         EnrollmentDate: new Date().toISOString().split('T')[0],
       };
 
-      const result = await this.conn.sobject('LoyaltyProgramMember').create(member);
+      const result = await this.conn.sobject('LoyaltyProgramMember').create(member) as any;
 
       if (result.success) {
         logger.info('Loyalty member created', {
