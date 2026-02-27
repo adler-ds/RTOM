@@ -25,6 +25,7 @@ export interface IntegrationConfig {
   redisHost: string;
   redisPort: number;
   redisPassword?: string;
+  redisTls?: boolean;
 }
 
 export interface WebhookRequest {

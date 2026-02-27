@@ -10,6 +10,11 @@ const redisOptions = {
   password: config.redisPassword,
   maxRetriesPerRequest: null,
   enableReadyCheck: false,
+  ...(config.redisTls && {
+    tls: {
+      rejectUnauthorized: false,
+    },
+  }),
 };
 
 export class QueueService {
