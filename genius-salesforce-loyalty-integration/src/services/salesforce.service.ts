@@ -1,4 +1,4 @@
-import jsforce from 'jsforce';
+import jsforce, { Connection } from 'jsforce';
 import { config } from '../config/config';
 import { logger } from '../utils/logger';
 import {
@@ -9,7 +9,7 @@ import {
 } from '../types/salesforce.types';
 
 export class SalesforceLoyaltyService {
-  private conn: jsforce.Connection;
+  private conn: Connection;
   private loyaltyProgramId: string | null = null;
 
   constructor() {
