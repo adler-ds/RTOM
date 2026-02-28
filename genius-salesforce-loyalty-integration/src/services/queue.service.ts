@@ -21,14 +21,9 @@ export class QueueService {
       useTls,
     });
 
-    this.transactionQueue = new Queue(
-      'transaction-processing',
-      redisUrl || {
-        host: config.redisHost,
-        port: config.redisPort,
-        password: config.redisPassword,
-      },
-      {
+    if (redisUrl) {
+      // Use Redis URL from Heroku
+      this.transactionQueue = new Queue('transaction-processing', redisUrl, {
         redis: useTls
           ? {
               tls: {
@@ -45,8 +40,31 @@ export class QueueService {
           removeOnComplete: true,
           removeOnFail: false,
         },
-      }
-    );
+      });
+    } else {
+      // Use parsed config for local development
+      this.transactionQueue = new Queue('transaction-processing', {
+        redis: {
+          host: config.redisHost,
+          port: config.redisPort,
+          password: config.redisPassword,
+          ...(config.redisTls && {
+            tls: {
+              rejectUnauthorized: false,
+            },
+          }),
+        },
+        defaultJobOptions: {
+          attempts: config.retryAttempts,
+          backoff: {
+            type: 'exponential',
+            delay: config.retryDelayMs,
+          },
+          removeOnComplete: true,
+          removeOnFail: false,
+        },
+      });
+    }
 
     this.setupProcessors();
     this.setupEventHandlers();
