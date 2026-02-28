@@ -4,21 +4,6 @@ import { logger } from '../utils/logger';
 import { IntegrationService } from './integration.service';
 import { GeniusTransaction } from '../types/genius.types';
 
-const redisOptions = {
-  host: config.redisHost,
-  port: config.redisPort,
-  password: config.redisPassword,
-  maxRetriesPerRequest: null,
-  enableReadyCheck: false,
-  ...(config.redisTls && {
-    tls: {
-      rejectUnauthorized: false,
-    },
-  }),
-};
-
-console.log('Queue service Redis options:', JSON.stringify(redisOptions, null, 2));
-
 export class QueueService {
   private transactionQueue: Queue.Queue;
   private integrationService: IntegrationService;
@@ -26,18 +11,42 @@ export class QueueService {
   constructor(integrationService: IntegrationService) {
     this.integrationService = integrationService;
 
-    this.transactionQueue = new Queue('transaction-processing', {
-      redis: redisOptions,
-      defaultJobOptions: {
-        attempts: config.retryAttempts,
-        backoff: {
-          type: 'exponential',
-          delay: config.retryDelayMs,
-        },
-        removeOnComplete: true,
-        removeOnFail: false,
-      },
+    // Bull v4 constructor: new Queue(name, url, opts)
+    // When using rediss:// URL, TLS options must be explicitly set
+    const redisUrl = process.env.REDIS_URL;
+    const useTls = redisUrl?.startsWith('rediss://');
+
+    console.log('Creating Bull queue with:', {
+      url: redisUrl || 'none',
+      useTls,
     });
+
+    this.transactionQueue = new Queue(
+      'transaction-processing',
+      redisUrl || {
+        host: config.redisHost,
+        port: config.redisPort,
+        password: config.redisPassword,
+      },
+      {
+        redis: useTls
+          ? {
+              tls: {
+                rejectUnauthorized: false,
+              },
+            }
+          : undefined,
+        defaultJobOptions: {
+          attempts: config.retryAttempts,
+          backoff: {
+            type: 'exponential',
+            delay: config.retryDelayMs,
+          },
+          removeOnComplete: true,
+          removeOnFail: false,
+        },
+      }
+    );
 
     this.setupProcessors();
     this.setupEventHandlers();
