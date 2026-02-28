@@ -21,49 +21,53 @@ export class QueueService {
       useTls,
     });
 
-    if (redisUrl) {
-      // Use Redis URL from Heroku
-      this.transactionQueue = new Queue('transaction-processing', redisUrl, {
-        redis: useTls
-          ? {
+    try {
+      if (redisUrl) {
+        // Use Redis URL from Heroku
+        // Bull requires TLS to be explicitly enabled even for rediss:// URLs
+        this.transactionQueue = new Queue('transaction-processing', redisUrl, {
+          redis: {
+            tls: {},  // Empty object enables TLS with default settings
+          },
+          defaultJobOptions: {
+            attempts: config.retryAttempts,
+            backoff: {
+              type: 'exponential',
+              delay: config.retryDelayMs,
+            },
+            removeOnComplete: true,
+            removeOnFail: false,
+          },
+        });
+      } else {
+        // Use parsed config for local development
+        this.transactionQueue = new Queue('transaction-processing', {
+          redis: {
+            host: config.redisHost,
+            port: config.redisPort,
+            password: config.redisPassword,
+            ...(config.redisTls && {
               tls: {
                 rejectUnauthorized: false,
               },
-            }
-          : undefined,
-        defaultJobOptions: {
-          attempts: config.retryAttempts,
-          backoff: {
-            type: 'exponential',
-            delay: config.retryDelayMs,
+            }),
           },
-          removeOnComplete: true,
-          removeOnFail: false,
-        },
-      });
-    } else {
-      // Use parsed config for local development
-      this.transactionQueue = new Queue('transaction-processing', {
-        redis: {
-          host: config.redisHost,
-          port: config.redisPort,
-          password: config.redisPassword,
-          ...(config.redisTls && {
-            tls: {
-              rejectUnauthorized: false,
+          defaultJobOptions: {
+            attempts: config.retryAttempts,
+            backoff: {
+              type: 'exponential',
+              delay: config.retryDelayMs,
             },
-          }),
-        },
-        defaultJobOptions: {
-          attempts: config.retryAttempts,
-          backoff: {
-            type: 'exponential',
-            delay: config.retryDelayMs,
+            removeOnComplete: true,
+            removeOnFail: false,
           },
-          removeOnComplete: true,
-          removeOnFail: false,
-        },
-      });
+        });
+      }
+
+      console.log('Bull queue created successfully');
+    } catch (error) {
+      console.error('Failed to create Bull queue:', error);
+      throw error;
     }
 
     this.setupProcessors();
