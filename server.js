@@ -3,18 +3,18 @@
  * @see https://developer.salesforce.com/docs/marketing/einstein-personalization/guide/decisioning-api-reference.html
  */
 
-require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const https = require('https');
 const http = require('http');
+require('dotenv').config({ path: path.join(__dirname, '.env') });
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
 const PERSONALIZATION_CONFIG = {
-  baseUrl: (process.env.PERSONALIZATION_BASE_URL || '').replace(/\/$/, ''),
+  baseUrl: (process.env.PERSONALIZATION_BASE_URL || process.env.SALESFORCE_INSTANCE_URL || '').replace(/\/$/, ''),
   tokenEndpoint: process.env.SALESFORCE_TOKEN_ENDPOINT ||
     (process.env.SALESFORCE_INSTANCE_URL ? `${process.env.SALESFORCE_INSTANCE_URL.replace(/\/$/, '')}/services/oauth2/token` : null) ||
     'https://login.salesforce.com/services/oauth2/token',
@@ -96,7 +96,7 @@ function getValidAccessToken() {
 function callPersonalizationApi(requestBody) {
   return new Promise((resolve, reject) => {
     if (!PERSONALIZATION_CONFIG.baseUrl) {
-      reject(new Error('PERSONALIZATION_BASE_URL must be set in .env'));
+      reject(new Error('PERSONALIZATION_BASE_URL (or SALESFORCE_INSTANCE_URL) must be set'));
       return;
     }
 
