@@ -39,10 +39,23 @@
       scroll-snap-align: start;
       min-height: 220px;
       display: flex;
-      align-items: center;
-      justify-content: center;
+      flex-direction: column;
     }
+    .slide-image { width: 100%; min-height: 180px; max-height: 240px; background: #f8f8f8; display:flex; align-items:center; justify-content:center; }
     .slide img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .slide-row { width: 100%; padding: 12px; border-top: 1px solid #efefef; }
+    .slide-row.output-html { font-size: 14px; line-height: 1.4; }
+    .slide-row.offer-copy h4 { margin: 0 0 6px; font-size: 15px; line-height: 1.25; }
+    .slide-row.offer-copy p {
+      margin: 0;
+      font-size: 13px;
+      line-height: 1.35;
+      width: 100%;
+      max-width: 100%;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+      white-space: normal;
+    }
     .empty { padding: 20px; color:#666; text-align:center; }
     .controls { display:flex; gap:8px; margin-top:10px; }
     .meta { font-size:12px; color:#666; margin-top:8px; }
@@ -182,24 +195,86 @@
       }
     }
 
-    function renderCarousel(urls) {
-      if (!urls.length) {
+    function normalizeAdData(adNode) {
+      const ad = { imageUrl: '', outputHtml: '', heading: '', body: '' };
+      if (!adNode || typeof adNode !== 'object') return ad;
+
+      Object.entries(adNode).forEach(([key, value]) => {
+        const normalizedKey = String(key || '').toLowerCase();
+        if (!ad.imageUrl && /imageurl__c$/.test(normalizedKey) && typeof value === 'string') {
+          ad.imageUrl = value.trim();
+        }
+        if (!ad.outputHtml && /outputtext__c$/.test(normalizedKey) && typeof value === 'string') {
+          ad.outputHtml = value;
+        }
+        if (!ad.heading && /offerheadingtext__c$/.test(normalizedKey) && typeof value === 'string') {
+          ad.heading = value;
+        }
+        if (!ad.body && /offerbodytext__c$/.test(normalizedKey) && typeof value === 'string') {
+          ad.body = value;
+        }
+      });
+      return ad;
+    }
+
+    function extractAds(node, out) {
+      if (!node) return;
+      if (Array.isArray(node)) {
+        node.forEach(v => extractAds(v, out));
+        return;
+      }
+      if (typeof node === 'string') {
+        try {
+          const parsed = JSON.parse(node);
+          extractAds(parsed, out);
+        } catch {
+          // ignore non-JSON strings
+        }
+        return;
+      }
+      if (typeof node === 'object') {
+        const normalized = normalizeAdData(node);
+        if (normalized.imageUrl || normalized.outputHtml || normalized.heading || normalized.body) {
+          out.push(normalized);
+        }
+        Object.values(node).forEach(v => extractAds(v, out));
+      }
+    }
+
+    function renderCarousel(ads) {
+      if (!ads.length) {
         container.innerHTML = '<div class="empty">No ssot_ImageURL__c values found.</div>';
         controls.style.display = 'none';
         meta.textContent = '';
         return;
       }
 
-      const unique = [...new Set(urls)];
-      const slides = unique.map((url, i) => `
+      const uniqueByImage = [];
+      const seen = new Set();
+      ads.forEach(ad => {
+        const key = ad.imageUrl || `${ad.heading}|${ad.body}|${ad.outputHtml}`;
+        if (!seen.has(key)) {
+          seen.add(key);
+          uniqueByImage.push(ad);
+        }
+      });
+
+      const slides = uniqueByImage.map((ad, i) => `
         <div class="slide">
-          <img src="${url}" alt="Ad ${i + 1}" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'empty',textContent:'Image failed to load'}))" />
+          <div class="slide-image">
+            ${ad.imageUrl ? `<img src="${ad.imageUrl}" alt="Ad ${i + 1}" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'empty',textContent:'Image failed to load'}))" />` : '<div class="empty">No image URL</div>'}
+          </div>
+          <div class="slide-row output-html">${ad.outputHtml || '<span class="hint">No ssot__outputText__c</span>'}</div>
+          <div class="slide-row offer-copy">
+            <h4>${ad.heading || 'No ssot__OfferHeadingText__c'}</h4>
+            <p>${ad.body || 'No ssot__OfferBodyText__c'}</p>
+          </div>
         </div>
       `).join('');
 
       container.innerHTML = `<div id="carousel" class="carousel">${slides}</div>`;
-      controls.style.display = unique.length > 3 ? 'flex' : 'none';
-      meta.textContent = `${unique.length} ad image(s) found. Showing 3 at a time; scroll right for more.`;
+      controls.style.display = uniqueByImage.length > 3 ? 'flex' : 'none';
+      meta.textContent = `${uniqueByImage.length} ad card(s) found. Showing 3 at a time; scroll right for more.`;
 
       const carousel = document.getElementById('carousel');
       leftBtn.onclick = () => carousel.scrollBy({ left: -carousel.clientWidth, behavior: 'smooth' });
@@ -236,7 +311,17 @@
         const urls = [];
         collectImageUrls(data.personalizations || [], urls);
         collectImageUrls(data, urls);
-        renderCarousel(urls);
+
+        const ads = [];
+        extractAds(data.personalizations || [], ads);
+        extractAds(data, ads);
+
+        if (!ads.length && urls.length) {
+          // Fallback for payloads that only include image URLs.
+          urls.forEach(url => ads.push({ imageUrl: url, outputHtml: '', heading: '', body: '' }));
+        }
+
+        renderCarousel(ads);
         statusEl.textContent = `Request ID: ${data.requestId || 'n/a'}`;
       } catch (err) {
         statusEl.textContent = `Request failed: ${err.message}`;
