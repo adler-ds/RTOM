@@ -212,6 +212,14 @@ app.get('/test-site', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'test-site.html'));
 });
 
+app.get('/ads-carousel', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'ads-carousel.html'));
+});
+
+app.get('/ads-carousel-variables', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'ads-carousel-variables.html'));
+});
+
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
