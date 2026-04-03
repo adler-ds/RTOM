@@ -28,7 +28,12 @@ Web app and backend services for **Salesforce Personalization** (Decisioning API
 2. **Configure environment**
    - Copy `.env.example` to `.env`.
    - Set **PERSONALIZATION_BASE_URL** (Data Cloud tenant endpoint, no trailing slash).
-   - Set **PERSONALIZATION_ACCESS_TOKEN** (Bearer token).
+   - Preferred auth (OAuth2 Client Credentials, like `Football-Throw-Game`):
+     - **SALESFORCE_CLIENT_ID**
+     - **SALESFORCE_CLIENT_SECRET**
+     - Optional: **SALESFORCE_TOKEN_ENDPOINT** (otherwise defaults to `https://login.salesforce.com/services/oauth2/token`)
+   - Optional fallback auth:
+     - **PERSONALIZATION_ACCESS_TOKEN** (static bearer token)
    - Optional: **PORT** (default `3001`).
 
 3. **Run**

@@ -15,58 +15,137 @@ const PORT = process.env.PORT || 3001;
 
 const PERSONALIZATION_CONFIG = {
   baseUrl: (process.env.PERSONALIZATION_BASE_URL || '').replace(/\/$/, ''),
-  accessToken: process.env.PERSONALIZATION_ACCESS_TOKEN || ''
+  tokenEndpoint: process.env.SALESFORCE_TOKEN_ENDPOINT ||
+    (process.env.SALESFORCE_INSTANCE_URL ? `${process.env.SALESFORCE_INSTANCE_URL.replace(/\/$/, '')}/services/oauth2/token` : null) ||
+    'https://login.salesforce.com/services/oauth2/token',
+  clientId: process.env.SALESFORCE_CLIENT_ID || process.env.SALESFORCE_CONSUMER_KEY || '',
+  clientSecret: process.env.SALESFORCE_CLIENT_SECRET || process.env.SALESFORCE_CONSUMER_SECRET || '',
+  staticAccessToken: process.env.PERSONALIZATION_ACCESS_TOKEN || ''
 };
+
+let oauthAccessToken = null;
+let tokenExpiry = null;
 
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-function callPersonalizationApi(requestBody) {
+function getValidAccessToken() {
   return new Promise((resolve, reject) => {
-    if (!PERSONALIZATION_CONFIG.baseUrl || !PERSONALIZATION_CONFIG.accessToken) {
-      reject(new Error('PERSONALIZATION_BASE_URL and PERSONALIZATION_ACCESS_TOKEN must be set in .env'));
+    if (PERSONALIZATION_CONFIG.staticAccessToken) {
+      resolve(PERSONALIZATION_CONFIG.staticAccessToken);
       return;
     }
-    const url = new URL('/personalization/decisions', PERSONALIZATION_CONFIG.baseUrl);
-    const isHttps = url.protocol === 'https:';
+
+    if (!PERSONALIZATION_CONFIG.clientId || !PERSONALIZATION_CONFIG.clientSecret) {
+      reject(new Error('Set SALESFORCE_CLIENT_ID/SECRET (or CONSUMER_KEY/SECRET), or PERSONALIZATION_ACCESS_TOKEN'));
+      return;
+    }
+
+    if (oauthAccessToken && tokenExpiry && Date.now() < tokenExpiry) {
+      resolve(oauthAccessToken);
+      return;
+    }
+
+    const tokenRequestData = new URLSearchParams({
+      grant_type: 'client_credentials',
+      client_id: PERSONALIZATION_CONFIG.clientId,
+      client_secret: PERSONALIZATION_CONFIG.clientSecret
+    }).toString();
+
+    const parsedUrl = new URL(PERSONALIZATION_CONFIG.tokenEndpoint);
+    const isHttps = parsedUrl.protocol === 'https:';
     const lib = isHttps ? https : http;
-    const body = JSON.stringify(requestBody);
+
     const options = {
-      hostname: url.hostname,
-      port: url.port || (isHttps ? 443 : 80),
-      path: url.pathname + url.search,
+      hostname: parsedUrl.hostname,
+      port: parsedUrl.port || (isHttps ? 443 : 80),
+      path: parsedUrl.pathname + parsedUrl.search,
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${PERSONALIZATION_CONFIG.accessToken}`,
-        'Content-Length': Buffer.byteLength(body)
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Content-Length': Buffer.byteLength(tokenRequestData)
       }
     };
+
     const req = lib.request(options, (res) => {
       let data = '';
       res.on('data', chunk => data += chunk);
       res.on('end', () => {
         try {
-          const parsed = data ? JSON.parse(data) : {};
-          if (res.statusCode >= 200 && res.statusCode < 300) resolve(parsed);
-          else reject(new Error(parsed.message || parsed.description || data || `HTTP ${res.statusCode}`));
+          const response = JSON.parse(data);
+          if (res.statusCode >= 200 && res.statusCode < 300 && response.access_token) {
+            oauthAccessToken = response.access_token;
+            tokenExpiry = Date.now() + ((response.expires_in || 3600) * 1000) - 60000;
+            resolve(oauthAccessToken);
+          } else {
+            reject(new Error(response.error_description || response.error || `Token request failed: ${res.statusCode}`));
+          }
         } catch (e) {
-          reject(new Error(data || e.message));
+          reject(new Error(`Failed to parse token response: ${e.message}`));
         }
       });
     });
+
     req.on('error', reject);
-    req.write(body);
+    req.write(tokenRequestData);
     req.end();
   });
 }
 
+function callPersonalizationApi(requestBody) {
+  return new Promise((resolve, reject) => {
+    if (!PERSONALIZATION_CONFIG.baseUrl) {
+      reject(new Error('PERSONALIZATION_BASE_URL must be set in .env'));
+      return;
+    }
+
+    getValidAccessToken()
+      .then((accessToken) => {
+        const url = new URL('/personalization/decisions', PERSONALIZATION_CONFIG.baseUrl);
+        const isHttps = url.protocol === 'https:';
+        const lib = isHttps ? https : http;
+        const body = JSON.stringify(requestBody);
+        const options = {
+          hostname: url.hostname,
+          port: url.port || (isHttps ? 443 : 80),
+          path: url.pathname + url.search,
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${accessToken}`,
+            'Content-Length': Buffer.byteLength(body)
+          }
+        };
+        const req = lib.request(options, (res) => {
+          let data = '';
+          res.on('data', chunk => data += chunk);
+          res.on('end', () => {
+            try {
+              const parsed = data ? JSON.parse(data) : {};
+              if (res.statusCode >= 200 && res.statusCode < 300) resolve(parsed);
+              else reject(new Error(parsed.message || parsed.description || data || `HTTP ${res.statusCode}`));
+            } catch (e) {
+              reject(new Error(data || e.message));
+            }
+          });
+        });
+        req.on('error', reject);
+        req.write(body);
+        req.end();
+      })
+      .catch(reject);
+  });
+}
+
 app.get('/api/health', (req, res) => {
+  const hasOauth = !!(PERSONALIZATION_CONFIG.clientId && PERSONALIZATION_CONFIG.clientSecret);
+  const hasStaticToken = !!PERSONALIZATION_CONFIG.staticAccessToken;
   res.json({
     status: 'ok',
     service: 'Salesforce Personalization',
-    configured: !!(PERSONALIZATION_CONFIG.baseUrl && PERSONALIZATION_CONFIG.accessToken),
+    configured: !!(PERSONALIZATION_CONFIG.baseUrl && (hasOauth || hasStaticToken)),
+    authMode: hasStaticToken ? 'static_token' : (hasOauth ? 'oauth_client_credentials' : 'not_configured'),
     timestamp: new Date().toISOString()
   });
 });
@@ -140,8 +219,12 @@ app.get('/', (req, res) => {
 app.listen(PORT, () => {
   console.log('\nSalesforce Personalization – Decisioning API');
   console.log(`Server: http://localhost:${PORT}`);
-  if (!PERSONALIZATION_CONFIG.baseUrl || !PERSONALIZATION_CONFIG.accessToken) {
-    console.warn('Set PERSONALIZATION_BASE_URL and PERSONALIZATION_ACCESS_TOKEN in .env');
+  const hasOauth = !!(PERSONALIZATION_CONFIG.clientId && PERSONALIZATION_CONFIG.clientSecret);
+  const hasStaticToken = !!PERSONALIZATION_CONFIG.staticAccessToken;
+  if (!PERSONALIZATION_CONFIG.baseUrl || (!hasOauth && !hasStaticToken)) {
+    console.warn('Set PERSONALIZATION_BASE_URL and either OAuth client credentials or PERSONALIZATION_ACCESS_TOKEN in .env');
+  } else if (hasOauth) {
+    console.log(`OAuth token endpoint: ${PERSONALIZATION_CONFIG.tokenEndpoint}`);
   }
 });
 
