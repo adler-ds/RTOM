@@ -138,17 +138,47 @@
       document.getElementById('pointName').value = values.pointName || DEFAULTS.pointName;
     }
 
+    function addIfImageUrl(value, out) {
+      if (typeof value !== 'string') return;
+      const url = value.trim();
+      if (!/^https?:\/\//i.test(url)) return;
+      // Keep strict enough for media URLs and common image endpoints.
+      if (/\/cms\/media\//i.test(url) || /\.(png|jpe?g|gif|webp|svg)(\?|$)/i.test(url)) {
+        out.push(url);
+      }
+    }
+
+    function extractUrlsFromString(text, out) {
+      if (typeof text !== 'string' || !text) return;
+      const matches = text.match(/https?:\/\/[^\s"'\\]+/g) || [];
+      matches.forEach(url => addIfImageUrl(url, out));
+    }
+
     function collectImageUrls(node, out) {
       if (!node) return;
       if (Array.isArray(node)) {
         node.forEach(v => collectImageUrls(v, out));
         return;
       }
-      if (typeof node === 'object') {
-        if (typeof node.ssot_ImageURL__c === 'string' && node.ssot_ImageURL__c.trim()) {
-          out.push(node.ssot_ImageURL__c.trim());
+      if (typeof node === 'string') {
+        // Some Decisioning fields are JSON blobs stored as strings.
+        extractUrlsFromString(node, out);
+        try {
+          const parsed = JSON.parse(node);
+          collectImageUrls(parsed, out);
+        } catch {
+          // Ignore non-JSON strings.
         }
-        Object.values(node).forEach(v => collectImageUrls(v, out));
+        return;
+      }
+      if (typeof node === 'object') {
+        Object.entries(node).forEach(([key, value]) => {
+          // Handle key variations such as ssot_ImageURL__c and ssot__ImageURL__c.
+          if (/imageurl__c$/i.test(key)) {
+            addIfImageUrl(value, out);
+          }
+          collectImageUrls(value, out);
+        });
       }
     }
 
@@ -205,6 +235,7 @@
 
         const urls = [];
         collectImageUrls(data.personalizations || [], urls);
+        collectImageUrls(data, urls);
         renderCarousel(urls);
         statusEl.textContent = `Request ID: ${data.requestId || 'n/a'}`;
       } catch (err) {
