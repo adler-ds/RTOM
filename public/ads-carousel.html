@@ -55,11 +55,16 @@
     .slide-row.output-html {
       font-size: 14px;
       line-height: 1.4;
-      min-height: 360px;
+      min-height: 0;
       max-height: none;
       overflow: visible;
     }
-    .slide-row.offer-copy h4 { margin: 0 0 6px; font-size: 15px; line-height: 1.25; }
+    .slide-row.offer-copy h4 {
+      margin: 0 0 6px;
+      font-size: 15px;
+      line-height: 1.25;
+      display: block;
+    }
     .slide-row.offer-copy p {
       margin: 0;
       font-size: 13px;
@@ -70,9 +75,7 @@
       word-break: break-word;
       white-space: normal;
     }
-    .slide-row.offer-copy {
-      min-height: 120px;
-    }
+    .slide-row.offer-copy { min-height: 120px; }
     .empty { padding: 20px; color:#666; text-align:center; }
     .controls { display:flex; gap:8px; margin-top:10px; }
     .meta { font-size:12px; color:#666; margin-top:8px; }
@@ -294,8 +297,27 @@
       meta.textContent = `${uniqueByImage.length} ad card(s) found. Showing 3 at a time; scroll right for more.`;
 
       const carousel = document.getElementById('carousel');
+      alignCardRows(carousel);
       leftBtn.onclick = () => carousel.scrollBy({ left: -carousel.clientWidth, behavior: 'smooth' });
       rightBtn.onclick = () => carousel.scrollBy({ left: carousel.clientWidth, behavior: 'smooth' });
+    }
+
+    function alignCardRows(carouselEl) {
+      if (!carouselEl) return;
+      const outputRows = Array.from(carouselEl.querySelectorAll('.slide-row.output-html'));
+      const headingRows = Array.from(carouselEl.querySelectorAll('.slide-row.offer-copy h4'));
+      if (!outputRows.length) return;
+
+      outputRows.forEach(el => { el.style.minHeight = '0px'; });
+      headingRows.forEach(el => { el.style.minHeight = '0px'; });
+
+      const maxOutputHeight = Math.max(...outputRows.map(el => el.scrollHeight));
+      const maxHeadingHeight = headingRows.length ? Math.max(...headingRows.map(el => el.scrollHeight)) : 0;
+
+      outputRows.forEach(el => { el.style.minHeight = `${maxOutputHeight}px`; });
+      headingRows.forEach(el => {
+        if (maxHeadingHeight > 0) el.style.minHeight = `${maxHeadingHeight}px`;
+      });
     }
 
     form.addEventListener('submit', async (e) => {
@@ -347,6 +369,10 @@
     });
 
     applyDefaults();
+    window.addEventListener('resize', () => {
+      const carousel = document.getElementById('carousel');
+      alignCardRows(carousel);
+    });
   </script>
 </body>
 </html>
