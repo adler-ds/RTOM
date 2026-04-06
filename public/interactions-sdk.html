@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Interactions Web SDK – Personalization &amp; behavior</title>
+  <style>
+    :root { --sf-blue: #0176d3; --header: #0a2240; --bg: #f3f3f3; --card: #fff; --border: #dddbda; }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: #222; }
+    .header { background: var(--header); color: #fff; padding: 14px 20px; }
+    .header a { color: #fff; }
+    .container { max-width: 960px; margin: 24px auto; padding: 0 16px; }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin-bottom: 16px; }
+    .hint { font-size: 13px; color: #666; margin: 0 0 12px; line-height: 1.45; }
+    .zone {
+      min-height: 120px;
+      border: 2px dashed #c9c9c9;
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 12px;
+      background: #fafafa;
+    }
+    .zone h3 { margin: 0 0 8px; font-size: 14px; color: var(--sf-blue); }
+    .log {
+      font-family: ui-monospace, monospace;
+      font-size: 11px;
+      background: #1e1e1e;
+      color: #d4d4d4;
+      padding: 12px;
+      border-radius: 6px;
+      max-height: 220px;
+      overflow: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    button {
+      background: var(--sf-blue);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 8px 14px;
+      cursor: pointer;
+      font-size: 13px;
+      margin-right: 8px;
+      margin-bottom: 8px;
+    }
+    button.secondary { background: #5f6368; }
+    button:hover { filter: brightness(0.95); }
+    ul.suggestions { margin: 8px 0 0; padding-left: 1.25rem; font-size: 13px; color: #444; line-height: 1.5; }
+    .link { color: var(--sf-blue); }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <strong>Salesforce Interactions Web SDK</strong>
+    <span style="margin-left:12px;"><a href="/">Home</a></span>
+    <span style="margin-left:12px;"><a href="/ads-carousel">Ads carousel</a></span>
+  </div>
+
+  <div class="container">
+    <div class="card">
+      <h2 style="margin-top:0;">What this page does</h2>
+      <p class="hint">
+        This demo follows the <strong>Personalization + Interactions SDK</strong> pattern: load your website connector’s CDN script, call
+        <code>SalesforceInteractions.init</code> (consent + optional dataspace), <code>initSitemap</code> (page + content zones), then
+        <code>SalesforceInteractions.Personalization.fetch</code> for your personalization points. Clicks use
+        <code>sendEvent</code> with catalog-style interactions so events can flow to your web connector schema and Data 360 graph (subject to your mapping).
+      </p>
+      <p class="hint">
+        Setup overview:
+        <a class="link" href="https://help.salesforce.com/s/articleView?id=mktg.persnl_web_personalization_manager.htm&amp;type=5" target="_blank" rel="noopener">Web Personalization Manager (Help)</a>
+        ·
+        <a class="link" href="https://developer.salesforce.com/docs/marketing/einstein-personalization/guide/integrate-salesforce-interactions-sdk.html" target="_blank" rel="noopener">Integrate Interactions SDK</a>
+        ·
+        <a class="link" href="https://developer.salesforce.com/docs/marketing/einstein-personalization/guide/request-personalization-through-sitemap.html" target="_blank" rel="noopener">Personalization.fetch via sitemap</a>
+        ·
+        <a class="link" href="https://developer.salesforce.com/docs/data/salesforce-interactions-sdk/guide/c360a-api-catalog-interaction.html" target="_blank" rel="noopener">Catalog interactions / sendEvent</a>
+      </p>
+      <ul class="suggestions">
+        <li><strong>Widgets:</strong> Map content zones in your uploaded <code>sitemap.js</code> to DOM selectors (below). Use <a class="link" href="https://developer.salesforce.com/docs/marketing/einstein-personalization/guide/integrate-personalization-modern-frontend.html" target="_blank" rel="noopener">Content Zone Handlers</a> in SPAs, or transformers in the sitemap for HTML from Decisioning.</li>
+        <li><strong>Behavior graph:</strong> Keep page-view and zone impressions in the sitemap; use <code>sendEvent</code> for high-value clicks. Map web connector DLOs to DMOs and refresh identity/consent per your policies.</li>
+        <li><strong>Alternative:</strong> Keep using server-side <code>/api/personalization/request</code> for demos without the CDN; the SDK path is better for first-party cookies, sitemap-driven capture, and WPM preview.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-top:0;">Status</h2>
+      <p id="status" class="hint">Loading configuration…</p>
+      <div id="sdk-log" class="log" aria-live="polite"></div>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-top:0;">Personalization slots (content zones)</h2>
+      <p class="hint">Selectors match the inline sitemap on this page: <code>#ep-ad-primary</code> and <code>#ep-ad-secondary</code>. Align personalization point names in Data Cloud with your tenant configuration (defaults come from <code>INTERACTIONS_PERSONALIZATION_POINTS</code>).</p>
+      <div class="zone" id="ep-ad-primary">
+        <h3>Primary zone (#ep-ad-primary)</h3>
+        <div class="zone-body">Waiting for SDK / fetch…</div>
+      </div>
+      <div class="zone" id="ep-ad-secondary">
+        <h3>Secondary zone (#ep-ad-secondary)</h3>
+        <div class="zone-body">Waiting for SDK / fetch…</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-top:0;">Click behavior (sendEvent)</h2>
+      <p class="hint">Example catalog-style events. Adjust <code>type</code>, <code>id</code>, and attributes to match your catalog and connector schema.</p>
+      <button type="button" id="btn-offer-a">Track: Offer A click</button>
+      <button type="button" id="btn-offer-b">Track: Offer B click</button>
+      <button type="button" class="secondary" id="btn-quickview">Track: Quick view (sample product)</button>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      const statusEl = document.getElementById('status');
+      const logEl = document.getElementById('sdk-log');
+      var sdkConfig = null;
+
+      function log(line) {
+        const t = new Date().toISOString().slice(11, 23);
+        logEl.textContent += '[' + t + '] ' + line + '\n';
+        logEl.scrollTop = logEl.scrollHeight;
+      }
+
+      function setStatus(text) {
+        statusEl.textContent = text;
+      }
+
+      function loadScript(src) {
+        return new Promise(function (resolve, reject) {
+          var s = document.createElement('script');
+          s.src = src;
+          s.async = true;
+          s.onload = function () { resolve(); };
+          s.onerror = function () { reject(new Error('Failed to load script: ' + src)); };
+          document.head.appendChild(s);
+        });
+      }
+
+      function renderFetchResult(response) {
+        var primary = document.querySelector('#ep-ad-primary .zone-body');
+        var secondary = document.querySelector('#ep-ad-secondary .zone-body');
+        if (!primary || !secondary) return;
+
+        try {
+          var text = JSON.stringify(response, null, 2);
+          primary.textContent = text.slice(0, 4000) + (text.length > 4000 ? '\n…' : '');
+          secondary.textContent = 'Full response logged above. Wire transformers or WPM to render HTML offers here.';
+          log('Personalization.fetch resolved; inspect primary zone for JSON snapshot.');
+        } catch (e) {
+          primary.textContent = String(e.message);
+        }
+      }
+
+      function trackCatalogClick(nameConstant, catalogId, catalogType, attrs) {
+        var SI = window.SalesforceInteractions;
+        if (!SI || typeof SI.sendEvent !== 'function') {
+          log('sendEvent not available (SDK not loaded or wrong bundle).');
+          return;
+        }
+        var interactionName = nameConstant;
+        if (typeof nameConstant === 'string') {
+          interactionName = nameConstant;
+        } else if (SI.CatalogObjectInteractionName && nameConstant) {
+          interactionName = nameConstant;
+        }
+        var payload = {
+          interaction: {
+            name: interactionName,
+            catalogObject: {
+              id: catalogId,
+              type: catalogType || 'Offer',
+              attributes: attrs || {}
+            }
+          }
+        };
+        Promise.resolve(SI.sendEvent(payload))
+          .then(function () { log('sendEvent ok: ' + catalogId); })
+          .catch(function (e) { log('sendEvent error: ' + (e && e.message ? e.message : e)); });
+      }
+
+      function bootSdk() {
+        var SI = window.SalesforceInteractions;
+        if (!SI) {
+          setStatus('SalesforceInteractions not found after script load.');
+          log('Check INTERACTIONS_SDK_CDN_URL and connector Integration Guide.');
+          return;
+        }
+
+        var initOpts = {
+          consents: [
+            {
+              purpose: SI.ConsentPurpose.Tracking,
+              provider: 'RTOM demo',
+              status: SI.ConsentStatus.OptIn
+            }
+          ]
+        };
+
+        if (sdkConfig.dataspace) {
+          initOpts.personalization = { dataspace: sdkConfig.dataspace };
+        }
+        if (sdkConfig.cookieDomain) {
+          initOpts.cookieDomain = sdkConfig.cookieDomain;
+        }
+
+        SI.init(initOpts)
+          .then(function () {
+            log('init() resolved');
+            var sitemapConfig = {
+              global: {},
+              pageTypeDefault: {
+                name: 'default',
+                interaction: { name: 'default page', eventType: 'userEngagement' }
+              },
+              pageTypes: [
+                {
+                  name: 'interactions_sdk_demo',
+                  isMatch: function () {
+                    return /interactions-sdk/.test(window.location.pathname);
+                  },
+                  interaction: { name: 'rtom interactions sdk demo', eventType: 'userEngagement' },
+                  contentZones: [
+                    { name: 'ep_demo_primary', selector: '#ep-ad-primary .zone-body' },
+                    { name: 'ep_demo_secondary', selector: '#ep-ad-secondary .zone-body' }
+                  ]
+                }
+              ]
+            };
+            if (typeof SI.initSitemap === 'function') {
+              SI.initSitemap(sitemapConfig);
+              log('initSitemap() called (demo page + content zones)');
+            } else {
+              log('initSitemap not available on this SDK build');
+            }
+
+            if (!SI.Personalization || typeof SI.Personalization.fetch !== 'function') {
+              setStatus('SDK loaded; Personalization.fetch not available (enable Personalization on connector / bundle).');
+              log('Personalization.fetch missing – use server Decisioning API or enable Personalization module.');
+              return;
+            }
+
+            var points = sdkConfig.personalizationPoints && sdkConfig.personalizationPoints.length
+              ? sdkConfig.personalizationPoints
+              : ['Offer_Treatment_Personalization'];
+
+            var fetchResult = SI.Personalization.fetch(points);
+            if (fetchResult && typeof fetchResult.then === 'function') {
+              return fetchResult.then(function (response) {
+                renderFetchResult(response);
+                setStatus('SDK ready; Personalization.fetch completed.');
+              });
+            }
+            log('Personalization.fetch did not return a Promise; check SDK version.');
+            setStatus('SDK ready (fetch return type unexpected).');
+          })
+          .catch(function (e) {
+            setStatus('SDK error: ' + (e && e.message ? e.message : e));
+            log(String(e && e.message ? e.message : e));
+          });
+      }
+
+      document.getElementById('btn-offer-a').addEventListener('click', function () {
+        var SI = window.SalesforceInteractions;
+        var name = SI && SI.CatalogObjectInteractionName
+          ? SI.CatalogObjectInteractionName.ViewCatalogObject
+          : 'View Catalog Object';
+        trackCatalogClick(name, 'RTOM-OFFER-A', 'Offer', { campaign: 'demo', slot: 'primary' });
+      });
+      document.getElementById('btn-offer-b').addEventListener('click', function () {
+        var SI = window.SalesforceInteractions;
+        var name = SI && SI.CatalogObjectInteractionName
+          ? SI.CatalogObjectInteractionName.ViewCatalogObject
+          : 'View Catalog Object';
+        trackCatalogClick(name, 'RTOM-OFFER-B', 'Offer', { campaign: 'demo', slot: 'secondary' });
+      });
+      document.getElementById('btn-quickview').addEventListener('click', function () {
+        var SI = window.SalesforceInteractions;
+        var name = SI && SI.CatalogObjectInteractionName
+          ? SI.CatalogObjectInteractionName.QuickViewCatalogObject
+          : 'Quick View Catalog Object';
+        trackCatalogClick(name, 'SKU-DEMO-001', 'Product', { name: 'Demo sneaker' });
+      });
+
+      fetch('/api/personalization/interactions-config')
+        .then(function (r) { return r.json(); })
+        .then(function (cfg) {
+          sdkConfig = cfg;
+          if (!cfg.cdnUrl) {
+            setStatus('Set INTERACTIONS_SDK_CDN_URL in server env (from Website connector → Integration Guide).');
+            log('No CDN URL configured.');
+            return;
+          }
+          setStatus('Loading SDK from CDN…');
+          log('CDN: ' + cfg.cdnUrl);
+          return loadScript(cfg.cdnUrl);
+        })
+        .then(function () {
+          if (sdkConfig && sdkConfig.cdnUrl) {
+            bootSdk();
+          }
+        })
+        .catch(function (e) {
+          setStatus('Failed: ' + (e && e.message ? e.message : e));
+          log(String(e && e.message ? e.message : e));
+        });
+    })();
+  </script>
+</body>
+</html>

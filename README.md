@@ -17,6 +17,11 @@ Web app and backend services for **Salesforce Personalization** (Decisioning API
   - Form: Individual ID, Dataspace, Personalization point (name or ID), optional Anchor ID/Type, Request URL, Enable diagnostics.  
   - Calls `/api/personalization/request` and shows response (requestId, personalizations, raw JSON).
 
+- **Interactions Web SDK demo** (`/interactions-sdk`)  
+  - Loads the Salesforce Interactions SDK from `INTERACTIONS_SDK_CDN_URL` (from your [website connector Integration Guide](https://developer.salesforce.com/docs/marketing/einstein-personalization/guide/integrate-salesforce-interactions-sdk.html)), initializes consent + dataspace, registers an inline sitemap with content zones, calls `Personalization.fetch`, and demonstrates `sendEvent` for click-style catalog interactions.  
+  - Config JSON: `GET /api/personalization/interactions-config` (dataspace, points, cookie domain; no secrets).  
+  - Help: [Web Personalization Manager](https://help.salesforce.com/s/articleView?id=mktg.persnl_web_personalization_manager.htm&type=5).
+
 ## Setup
 
 1. **Install dependencies**

@@ -208,8 +208,29 @@ app.post('/api/personalization/request', async (req, res) => {
   }
 });
 
+/**
+ * Config for the Interactions Web SDK demo page (no secrets — CDN URL is public per connector).
+ * @see https://developer.salesforce.com/docs/marketing/einstein-personalization/guide/integrate-salesforce-interactions-sdk.html
+ */
+app.get('/api/personalization/interactions-config', (req, res) => {
+  const points = (process.env.INTERACTIONS_PERSONALIZATION_POINTS || 'Offer_Treatment_Personalization')
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
+  res.json({
+    cdnUrl: (process.env.INTERACTIONS_SDK_CDN_URL || '').trim(),
+    dataspace: (process.env.INTERACTIONS_DATASPACE || 'default').trim(),
+    personalizationPoints: points.length ? points : ['Offer_Treatment_Personalization'],
+    cookieDomain: (process.env.INTERACTIONS_COOKIE_DOMAIN || '').trim() || null
+  });
+});
+
 app.get('/test-site', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'test-site.html'));
+});
+
+app.get('/interactions-sdk', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'interactions-sdk.html'));
 });
 
 app.get('/ads-carousel', (req, res) => {
