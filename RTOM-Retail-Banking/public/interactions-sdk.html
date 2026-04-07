@@ -151,10 +151,14 @@
     <div class="card">
       <h2 style="margin-top:0;">Match Ads Carousel (known visitor)</h2>
       <p class="hint">
-        <strong>Ads Carousel</strong> calls <code>/api/personalization/request</code> with the <strong>Individual ID</strong> you type (server OAuth → Decisioning). The <strong>Interactions SDK</strong> instead uses the
-        <strong>browser profile</strong> (cookie / anonymous id) for <code>Personalization.fetch</code>, so the same point and dataspace can still fail until that profile is linked to your Contact.
-        Optionally set the same Contact Id here (or <code>INTERACTIONS_TEST_INDIVIDUAL_ID</code> on the server): the page sends <code>sendEvent({ user: { identities: { … } } })</code> (default key <code>CRMId</code>), waits, then runs <code>Personalization.fetch</code>.
-        If your connector maps a different identity field, set <code>INTERACTIONS_IDENTITY_KEY</code>.
+        <strong>Ads Carousel</strong> calls <code>/api/personalization/request</code> with the <strong>Individual ID</strong> you type (server OAuth → Decisioning). The <strong>Interactions SDK</strong> uses the
+        <strong>browser profile</strong> for <code>Personalization.fetch</code>. <strong>Anonymous visitors</strong> often get no offers or a generic failure even when Decisioning works for a known Contact.
+        After <code>user.identities</code>, the SDK can still error with <em>“Expected … data or attributes”</em> while REST returns valid offers—the beacon client validates response shape more strictly than this demo’s server call.
+        Use <strong>Load zones via server API</strong> to prove the same payload as Ads Carousel in the zones below (production sites rely on SDK/WPM or sitemap transformers once response shape matches).
+      </p>
+      <p class="hint">
+        Optional: same Contact Id as Ads Carousel (or <code>INTERACTIONS_TEST_INDIVIDUAL_ID</code>): <code>sendEvent({ user: { identities: { … } } })</code> (default <code>CRMId</code>), wait, then <code>Personalization.fetch</code>.
+        Use <code>INTERACTIONS_IDENTITY_KEY</code> if your connector maps a different field. Double-check the Id is the real 18-char Contact Id (e.g. <code>003Wx…</code> vs a typo <code>003Ws…</code>).
       </p>
       <div class="identity-row">
         <div>
@@ -162,6 +166,7 @@
           <input type="text" id="rtom-test-individual-id" placeholder="003xxxxxxxxxxxxxxx" autocomplete="off" />
         </div>
         <button type="button" class="secondary" id="btn-retry-fetch-identity">Send identity &amp; retry fetch</button>
+        <button type="button" id="btn-server-personalization">Load zones via server API</button>
       </div>
     </div>
 
@@ -290,9 +295,55 @@
           + JSON.stringify((sdkConfig && sdkConfig.personalizationPoints) || []));
         log('• Dataspace in init must match your personalization dataspace (INTERACTIONS_DATASPACE). Current: '
           + ((sdkConfig && sdkConfig.dataspace) || '(not set)'));
-        log('• This error usually means the API returned rows without "data" or "attributes" (no offer payload, or strategy not publishing content).');
+        log('• “data” / “attributes” missing: Decisioning may return placeholder rows, or the SDK path may differ from REST. If Ads Carousel works for the same Contact, click “Load zones via server API”.');
         log('• To test sendEvent/content zones only, set INTERACTIONS_SKIP_PERSONALIZATION_FETCH=true on the server.');
         if (msg) log('Detail: ' + msg);
+      }
+
+      function loadPersonalizationViaServer() {
+        var id = getEffectiveTestIndividualId();
+        if (!id) {
+          log('Server API: enter Individual ID (same as Ads Carousel).');
+          setStatus('Enter Individual ID, then “Load zones via server API”.');
+          return;
+        }
+        var point = (sdkConfig && sdkConfig.personalizationPoints && sdkConfig.personalizationPoints[0])
+          ? sdkConfig.personalizationPoints[0]
+          : 'Offer_Treatment_Personalization';
+        var ds = (sdkConfig && sdkConfig.dataspace) ? sdkConfig.dataspace : 'default';
+        setStatus('Loading personalization via server API…');
+        log('POST /api/personalization/request — individualId, dataspace=' + ds + ', point=' + point + ' (enableDiagnostics)');
+        fetch('/api/personalization/request', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            individualId: id,
+            dataspace: ds,
+            personalizationPointName: point,
+            requestUrl: window.location.href,
+            enableDiagnostics: true
+          })
+        })
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            if (!data.success) {
+              log('Server API error: ' + (data.error || 'unknown'));
+              setStatus('Server API failed: ' + (data.error || 'unknown'));
+              return;
+            }
+            renderFetchResult({
+              source: 'Server Decisioning API (/api/personalization/request — same as Ads Carousel)',
+              requestId: data.requestId,
+              personalizations: data.personalizations || [],
+              diagnostics: data.diagnostics
+            });
+            setStatus('Zones filled via server API. SDK Personalization.fetch is separate and may still fail.');
+            log('Server API ok · requestId=' + (data.requestId || 'n/a') + ' · personalizations=' + (data.personalizations || []).length);
+          })
+          .catch(function (err) {
+            log('Server API request failed: ' + (err && err.message ? err.message : err));
+            setStatus('Server API request failed.');
+          });
       }
 
       function getEffectiveTestIndividualId() {
@@ -383,6 +434,11 @@
               var errMsg = e && e.message ? e.message : String(e);
               log('Personalization.fetch error: ' + errMsg);
               logPersonalizationFetchTroubleshooting(errMsg);
+              if (getEffectiveTestIndividualId()) {
+                log('→ With Individual ID set: use “Load zones via server API” to mirror Ads Carousel in the zones below.');
+              } else {
+                log('→ Anonymous profile: add Individual ID + server API button, or expect no offers until identity matches a Decisioning audience.');
+              }
               setStatus('SDK loaded; Personalization.fetch failed (see log). sendEvent still works.');
               return null;
             });
@@ -604,6 +660,10 @@
             log('init() or sitemap failed: ' + errMsg);
           });
       }
+
+      document.getElementById('btn-server-personalization').addEventListener('click', function () {
+        loadPersonalizationViaServer();
+      });
 
       document.getElementById('btn-retry-fetch-identity').addEventListener('click', function () {
         var SI = window.SalesforceInteractions;
