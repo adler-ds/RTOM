@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ads Carousel - Salesforce Personalization</title>
+  <style>
+    :root { --sf-blue:#0176d3; --bg:#f3f3f3; --card:#fff; --border:#dddbda; }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: Arial, sans-serif; background: var(--bg); color: #222; }
+    .header { background: #0a2240; color:#fff; padding: 14px 20px; }
+    .header a { color:#fff; }
+    .container { max-width: 1200px; margin: 24px auto; padding: 0 16px; }
+    .card { background: var(--card); border:1px solid var(--border); border-radius:10px; padding:16px; margin-bottom:16px; }
+    .grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    label { font-size: 13px; display:block; margin-bottom: 4px; }
+    input { width:100%; padding:10px; border:1px solid var(--border); border-radius:6px; }
+    button { background: var(--sf-blue); color:#fff; border:none; border-radius:6px; padding:10px 14px; cursor:pointer; }
+    button:hover { background:#015ca6; }
+    .hint { font-size: 13px; color:#666; }
+
+    .carousel-wrap { position: relative; }
+    .carousel {
+      display: grid;
+      grid-auto-flow: column;
+      grid-auto-columns: calc((100% - 32px) / 3);
+      gap: 16px;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      padding-bottom: 8px;
+    }
+    .carousel::-webkit-scrollbar { height: 10px; }
+    .carousel::-webkit-scrollbar-thumb { background: #c9c9c9; border-radius: 8px; }
+    .slide {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      scroll-snap-align: start;
+      min-height: 220px;
+      display: flex;
+      flex-direction: column;
+    }
+    .slide-image {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      background: #f8f8f8;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-bottom: 1px solid #d8dde6;
+    }
+    .slide img { width: 100%; height: 100%; object-fit: cover; display: block; background: #fff; }
+    .slide-row { width: 100%; padding: 12px; border-top: 1px solid #d8dde6; }
+    .slide-row.output-html {
+      font-size: 14px;
+      line-height: 1.4;
+      min-height: 0;
+      max-height: none;
+      overflow: visible;
+    }
+    .slide-row.offer-copy h4 {
+      margin: 0 0 6px;
+      font-size: 15px;
+      line-height: 1.25;
+      display: block;
+    }
+    .slide-row.offer-copy p {
+      margin: 0;
+      font-size: 13px;
+      line-height: 1.35;
+      width: 100%;
+      max-width: 100%;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+      white-space: normal;
+    }
+    .slide-row.offer-copy { min-height: 120px; }
+    .empty { padding: 20px; color:#666; text-align:center; }
+    .controls { display:flex; gap:8px; margin-top:10px; }
+    .meta { font-size:12px; color:#666; margin-top:8px; }
+
+    @media (max-width: 900px) {
+      .carousel { grid-auto-columns: calc((100% - 16px) / 2); }
+      .grid { grid-template-columns:1fr; }
+    }
+    @media (max-width: 600px) {
+      .carousel { grid-auto-columns: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <strong>Salesforce Personalization - Ads Carousel</strong>
+    <span style="margin-left:12px;"><a href="/">Back</a></span>
+    <span style="margin-left:12px;"><a href="/ads-carousel-variables">Variables</a></span>
+  </div>
+
+  <div class="container">
+    <div class="card">
+      <h2 style="margin-top:0;">Load Ad Images</h2>
+      <p class="hint">Shows only <code>ssot_ImageURL__c</code> values from personalization response data.</p>
+      <form id="form">
+        <div class="grid">
+          <div>
+            <label>Individual ID *</label>
+            <input id="individualId" required placeholder="e.g. 003Ws00000S4JbtIAF" />
+          </div>
+          <div>
+            <label>Dataspace *</label>
+            <input id="dataspace" required placeholder="e.g. default" />
+          </div>
+          <div>
+            <label>Personalization point (name) *</label>
+            <input id="pointName" required placeholder="e.g. Offer_Treatment_Personalization" />
+          </div>
+          <div>
+            <label>Request URL (optional)</label>
+            <input id="requestUrl" placeholder="e.g. https://bank.example/offers" />
+          </div>
+        </div>
+        <div style="margin-top:12px; display:flex; gap:10px; align-items:center;">
+          <button type="submit" id="loadBtn">Load Ads</button>
+          <span id="status" class="hint"></span>
+        </div>
+      </form>
+    </div>
+
+    <div class="card">
+      <h3 style="margin-top:0;">Ads Carousel</h3>
+      <div id="carouselContainer" class="carousel-wrap">
+        <div class="empty">No ads loaded yet.</div>
+      </div>
+      <div class="controls" id="controls" style="display:none;">
+        <button type="button" id="leftBtn">Scroll Left</button>
+        <button type="button" id="rightBtn">Scroll Right</button>
+      </div>
+      <div class="meta" id="meta"></div>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = 'adsCarouselDefaults';
+    const DEFAULTS = {
+      individualId: '003Ws00000S4JbtIAF',
+      dataspace: 'default',
+      pointName: 'Offer_Treatment_Personalization'
+    };
+
+    const form = document.getElementById('form');
+    const statusEl = document.getElementById('status');
+    const container = document.getElementById('carouselContainer');
+    const controls = document.getElementById('controls');
+    const meta = document.getElementById('meta');
+    const leftBtn = document.getElementById('leftBtn');
+    const rightBtn = document.getElementById('rightBtn');
+
+    function getSavedValues() {
+      try {
+        const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+        return { ...DEFAULTS, ...parsed };
+      } catch {
+        return { ...DEFAULTS };
+      }
+    }
+
+    function applyDefaults() {
+      const values = getSavedValues();
+      document.getElementById('individualId').value = values.individualId || DEFAULTS.individualId;
+      document.getElementById('dataspace').value = values.dataspace || DEFAULTS.dataspace;
+      document.getElementById('pointName').value = values.pointName || DEFAULTS.pointName;
+    }
+
+    function addIfImageUrl(value, out) {
+      if (typeof value !== 'string') return;
+      const url = value.trim();
+      if (!/^https?:\/\//i.test(url)) return;
+      // Keep strict enough for media URLs and common image endpoints.
+      if (/\/cms\/media\//i.test(url) || /\.(png|jpe?g|gif|webp|svg)(\?|$)/i.test(url)) {
+        out.push(url);
+      }
+    }
+
+    function extractUrlsFromString(text, out) {
+      if (typeof text !== 'string' || !text) return;
+      const matches = text.match(/https?:\/\/[^\s"'\\]+/g) || [];
+      matches.forEach(url => addIfImageUrl(url, out));
+    }
+
+    function collectImageUrls(node, out) {
+      if (!node) return;
+      if (Array.isArray(node)) {
+        node.forEach(v => collectImageUrls(v, out));
+        return;
+      }
+      if (typeof node === 'string') {
+        // Some Decisioning fields are JSON blobs stored as strings.
+        extractUrlsFromString(node, out);
+        try {
+          const parsed = JSON.parse(node);
+          collectImageUrls(parsed, out);
+        } catch {
+          // Ignore non-JSON strings.
+        }
+        return;
+      }
+      if (typeof node === 'object') {
+        Object.entries(node).forEach(([key, value]) => {
+          // Handle key variations such as ssot_ImageURL__c and ssot__ImageURL__c.
+          if (/imageurl__c$/i.test(key)) {
+            addIfImageUrl(value, out);
+          }
+          collectImageUrls(value, out);
+        });
+      }
+    }
+
+    function normalizeAdData(adNode) {
+      const ad = { imageUrl: '', outputHtml: '', heading: '', body: '' };
+      if (!adNode || typeof adNode !== 'object') return ad;
+
+      Object.entries(adNode).forEach(([key, value]) => {
+        const normalizedKey = String(key || '').toLowerCase();
+        if (!ad.imageUrl && /imageurl__c$/.test(normalizedKey) && typeof value === 'string') {
+          ad.imageUrl = value.trim();
+        }
+        if (!ad.outputHtml && /outputtext__c$/.test(normalizedKey) && typeof value === 'string') {
+          ad.outputHtml = value;
+        }
+        if (!ad.heading && /offerheadingtext__c$/.test(normalizedKey) && typeof value === 'string') {
+          ad.heading = value;
+        }
+        if (!ad.body && /offerbodytext__c$/.test(normalizedKey) && typeof value === 'string') {
+          ad.body = value;
+        }
+      });
+      return ad;
+    }
+
+    function extractAds(node, out) {
+      if (!node) return;
+      if (Array.isArray(node)) {
+        node.forEach(v => extractAds(v, out));
+        return;
+      }
+      if (typeof node === 'string') {
+        try {
+          const parsed = JSON.parse(node);
+          extractAds(parsed, out);
+        } catch {
+          // ignore non-JSON strings
+        }
+        return;
+      }
+      if (typeof node === 'object') {
+        const normalized = normalizeAdData(node);
+        if (normalized.imageUrl || normalized.outputHtml || normalized.heading || normalized.body) {
+          out.push(normalized);
+        }
+        Object.values(node).forEach(v => extractAds(v, out));
+      }
+    }
+
+    function renderCarousel(ads) {
+      if (!ads.length) {
+        container.innerHTML = '<div class="empty">No ssot_ImageURL__c values found.</div>';
+        controls.style.display = 'none';
+        meta.textContent = '';
+        return;
+      }
+
+      const uniqueByImage = [];
+      const seen = new Set();
+      ads.forEach(ad => {
+        const key = ad.imageUrl || `${ad.heading}|${ad.body}|${ad.outputHtml}`;
+        if (!seen.has(key)) {
+          seen.add(key);
+          uniqueByImage.push(ad);
+        }
+      });
+
+      const slides = uniqueByImage.map((ad, i) => `
+        <div class="slide">
+          <div class="slide-image">
+            ${ad.imageUrl ? `<img src="${ad.imageUrl}" alt="Ad ${i + 1}" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'empty',textContent:'Image failed to load'}))" />` : '<div class="empty">No image URL</div>'}
+          </div>
+          <div class="slide-row output-html">${ad.outputHtml || '<span class="hint">No ssot__outputText__c</span>'}</div>
+          <div class="slide-row offer-copy">
+            <h4>${ad.heading || 'No ssot__OfferHeadingText__c'}</h4>
+            <p>${ad.body || 'No ssot__OfferBodyText__c'}</p>
+          </div>
+        </div>
+      `).join('');
+
+      container.innerHTML = `<div id="carousel" class="carousel">${slides}</div>`;
+      controls.style.display = uniqueByImage.length > 3 ? 'flex' : 'none';
+      meta.textContent = `${uniqueByImage.length} ad card(s) found. Showing 3 at a time; scroll right for more.`;
+
+      const carousel = document.getElementById('carousel');
+      alignCardRows(carousel);
+      leftBtn.onclick = () => carousel.scrollBy({ left: -carousel.clientWidth, behavior: 'smooth' });
+      rightBtn.onclick = () => carousel.scrollBy({ left: carousel.clientWidth, behavior: 'smooth' });
+    }
+
+    function alignCardRows(carouselEl) {
+      if (!carouselEl) return;
+      const outputRows = Array.from(carouselEl.querySelectorAll('.slide-row.output-html'));
+      const headingRows = Array.from(carouselEl.querySelectorAll('.slide-row.offer-copy h4'));
+      if (!outputRows.length) return;
+
+      outputRows.forEach(el => { el.style.minHeight = '0px'; });
+      headingRows.forEach(el => { el.style.minHeight = '0px'; });
+
+      const maxOutputHeight = Math.max(...outputRows.map(el => el.scrollHeight));
+      const maxHeadingHeight = headingRows.length ? Math.max(...headingRows.map(el => el.scrollHeight)) : 0;
+
+      outputRows.forEach(el => { el.style.minHeight = `${maxOutputHeight}px`; });
+      headingRows.forEach(el => {
+        if (maxHeadingHeight > 0) el.style.minHeight = `${maxHeadingHeight}px`;
+      });
+    }
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      statusEl.textContent = 'Loading...';
+      meta.textContent = '';
+
+      const payload = {
+        individualId: document.getElementById('individualId').value.trim(),
+        dataspace: document.getElementById('dataspace').value.trim(),
+        personalizationPointName: document.getElementById('pointName').value.trim(),
+        requestUrl: document.getElementById('requestUrl').value.trim() || undefined,
+        enableDiagnostics: true
+      };
+
+      try {
+        const res = await fetch('/api/personalization/request', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+
+        if (!data.success) {
+          statusEl.textContent = `Error: ${data.error || 'Unknown error'}`;
+          renderCarousel([]);
+          return;
+        }
+
+        const urls = [];
+        collectImageUrls(data.personalizations || [], urls);
+        collectImageUrls(data, urls);
+
+        const ads = [];
+        extractAds(data.personalizations || [], ads);
+        extractAds(data, ads);
+
+        if (!ads.length && urls.length) {
+          // Fallback for payloads that only include image URLs.
+          urls.forEach(url => ads.push({ imageUrl: url, outputHtml: '', heading: '', body: '' }));
+        }
+
+        renderCarousel(ads);
+        statusEl.textContent = `Request ID: ${data.requestId || 'n/a'}`;
+      } catch (err) {
+        statusEl.textContent = `Request failed: ${err.message}`;
+        renderCarousel([]);
+      }
+    });
+
+    applyDefaults();
+    window.addEventListener('resize', () => {
+      const carousel = document.getElementById('carousel');
+      alignCardRows(carousel);
+    });
+  </script>
+</body>
+</html>

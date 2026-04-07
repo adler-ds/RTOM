@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ads Carousel Variables</title>
+  <style>
+    :root { --sf-blue:#0176d3; --bg:#f3f3f3; --card:#fff; --border:#dddbda; }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: Arial, sans-serif; background: var(--bg); color:#222; }
+    .header { background:#0a2240; color:#fff; padding:14px 20px; }
+    .header a { color:#fff; }
+    .container { max-width: 760px; margin: 24px auto; padding: 0 16px; }
+    .card { background: var(--card); border:1px solid var(--border); border-radius:10px; padding:16px; }
+    label { display:block; font-size: 13px; margin: 10px 0 4px; }
+    input { width:100%; padding:10px; border:1px solid var(--border); border-radius:6px; }
+    .row { display:flex; gap:10px; margin-top:14px; }
+    button { background:var(--sf-blue); color:#fff; border:none; border-radius:6px; padding:10px 14px; cursor:pointer; }
+    button.secondary { background:#5f6368; }
+    .hint { font-size:13px; color:#666; margin:0 0 10px; }
+    #status { margin-top:10px; font-size:13px; color:#166534; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <strong>Ads Carousel Variables</strong>
+    <span style="margin-left:12px;"><a href="/ads-carousel">Back to Carousel</a></span>
+  </div>
+  <div class="container">
+    <div class="card">
+      <h2 style="margin-top:0;">Default Form Values</h2>
+      <p class="hint">These values are saved in your browser and used to prefill the Ads Carousel form.</p>
+      <form id="vars-form">
+        <label for="individualId">Individual ID</label>
+        <input id="individualId" />
+
+        <label for="dataspace">Dataspace</label>
+        <input id="dataspace" />
+
+        <label for="pointName">Personalization point (name)</label>
+        <input id="pointName" />
+
+        <div class="row">
+          <button type="submit">Save</button>
+          <button type="button" id="resetBtn" class="secondary">Reset to defaults</button>
+        </div>
+      </form>
+      <div id="status"></div>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = 'adsCarouselDefaults';
+    const DEFAULTS = {
+      individualId: '003Ws00000S4JbtIAF',
+      dataspace: 'default',
+      pointName: 'Offer_Treatment_Personalization'
+    };
+
+    const form = document.getElementById('vars-form');
+    const statusEl = document.getElementById('status');
+    const resetBtn = document.getElementById('resetBtn');
+
+    function getSavedValues() {
+      try {
+        const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+        return { ...DEFAULTS, ...parsed };
+      } catch {
+        return { ...DEFAULTS };
+      }
+    }
+
+    function setFormValues(values) {
+      document.getElementById('individualId').value = values.individualId || '';
+      document.getElementById('dataspace').value = values.dataspace || '';
+      document.getElementById('pointName').value = values.pointName || '';
+    }
+
+    function save(values) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(values));
+    }
+
+    setFormValues(getSavedValues());
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const values = {
+        individualId: document.getElementById('individualId').value.trim(),
+        dataspace: document.getElementById('dataspace').value.trim(),
+        pointName: document.getElementById('pointName').value.trim()
+      };
+      save(values);
+      statusEl.textContent = 'Saved. These values will now prefill the Ads Carousel form.';
+    });
+
+    resetBtn.addEventListener('click', () => {
+      save(DEFAULTS);
+      setFormValues(DEFAULTS);
+      statusEl.textContent = 'Reset to requested defaults.';
+    });
+  </script>
+</body>
+</html>
