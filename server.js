@@ -236,13 +236,23 @@ app.get('/api/personalization/interactions-config', (req, res) => {
       : /\/beacon\//i.test(cdnUrl)
         ? 'beacon'
         : 'standalone';
+  const identityDelayRaw = parseInt(process.env.INTERACTIONS_IDENTITY_DELAY_MS || '2000', 10);
+  const identityDelayMs = Number.isFinite(identityDelayRaw)
+    ? Math.min(30000, Math.max(0, identityDelayRaw))
+    : 2000;
+  const testIndividualId = (process.env.INTERACTIONS_TEST_INDIVIDUAL_ID || '').trim() || null;
+  const identityKey = (process.env.INTERACTIONS_IDENTITY_KEY || 'CRMId').trim() || 'CRMId';
+
   res.json({
     cdnUrl,
     sdkMode,
     dataspace: (process.env.INTERACTIONS_DATASPACE || 'default').trim(),
     personalizationPoints: points.length ? points : ['Offer_Treatment_Personalization'],
     cookieDomain: (process.env.INTERACTIONS_COOKIE_DOMAIN || '').trim() || null,
-    skipPersonalizationFetch: process.env.INTERACTIONS_SKIP_PERSONALIZATION_FETCH === 'true'
+    skipPersonalizationFetch: process.env.INTERACTIONS_SKIP_PERSONALIZATION_FETCH === 'true',
+    testIndividualId,
+    identityKey,
+    identityDelayMs
   });
 });
 
