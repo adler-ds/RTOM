@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Interactions Web SDK – Personalization &amp; behavior</title>
+  <style>
+    :root { --sf-blue: #0176d3; --header: #0a2240; --bg: #f3f3f3; --card: #fff; --border: #dddbda; }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: #222; }
+    .header { background: var(--header); color: #fff; padding: 14px 20px; }
+    .header a { color: #fff; }
+    .container { max-width: 960px; margin: 24px auto; padding: 0 16px; }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin-bottom: 16px; }
+    .hint { font-size: 13px; color: #666; margin: 0 0 12px; line-height: 1.45; }
+    .zone {
+      min-height: 120px;
+      border: 2px dashed #c9c9c9;
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 12px;
+      background: #fafafa;
+    }
+    .zone h3 { margin: 0 0 8px; font-size: 14px; color: var(--sf-blue); }
+    .log {
+      font-family: ui-monospace, monospace;
+      font-size: 11px;
+      background: #1e1e1e;
+      color: #d4d4d4;
+      padding: 12px;
+      border-radius: 6px;
+      max-height: 220px;
+      overflow: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    button {
+      background: var(--sf-blue);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 8px 14px;
+      cursor: pointer;
+      font-size: 13px;
+      margin-right: 8px;
+      margin-bottom: 8px;
+    }
+    button.secondary { background: #5f6368; }
+    button:hover { filter: brightness(0.95); }
+    ul.suggestions { margin: 8px 0 0; padding-left: 1.25rem; font-size: 13px; color: #444; line-height: 1.5; }
+    .link { color: var(--sf-blue); }
+    #connector-playground .category-block {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin-bottom: 14px;
+      background: #fafbfc;
+    }
+    #connector-playground .category-header {
+      display: block;
+      width: 100%;
+      text-align: left;
+      background: #e8f4fc;
+      color: #032d60;
+      font-weight: 600;
+      font-size: 15px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      border: 1px solid #b4d9f7;
+      cursor: pointer;
+    }
+    #connector-playground .category-header:hover { filter: brightness(0.97); }
+    #connector-playground .category-header .cat-meta {
+      display: block;
+      font-weight: 400;
+      font-size: 12px;
+      color: #54698d;
+      margin-top: 4px;
+    }
+    #connector-playground .product-tiles {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    #connector-playground .product-tile {
+      background: #fff;
+      color: #032d60;
+      border: 1px solid #c9c9c9;
+      font-size: 13px;
+      padding: 8px 12px;
+      border-radius: 6px;
+      margin: 0;
+    }
+    #connector-playground .product-tile:hover { border-color: var(--sf-blue); }
+    #connector-playground .promo-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    #connector-playground .promo-tile {
+      background: linear-gradient(135deg, #fef3e2 0%, #fff 100%);
+      border: 1px solid #f4d19b;
+      color: #5c3700;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <strong>Salesforce Interactions Web SDK</strong>
+    <span style="margin-left:12px;"><a href="/">Home</a></span>
+    <span style="margin-left:12px;"><a href="/ads-carousel">Ads carousel</a></span>
+  </div>
+
+  <div class="container">
+    <div class="card">
+      <h2 style="margin-top:0;">What this page does</h2>
+      <p class="hint">
+        <strong>Standalone SDK:</strong> load the CDN script, then call <code>init</code> (consent + optional dataspace), <code>initSitemap</code> (page + content zones), then
+        <code>Personalization.fetch</code>. <strong>Beacon bundle</strong> (<code>/beacon/c360a/…/c360a.min.js</code>): the script already includes CDP, personalization, and your uploaded sitemap—define
+        <code>window.CONSENTS</code> <em>before</em> the script runs; this page does that and skips duplicate <code>init</code>/<code>initSitemap</code>. Clicks below use
+        <code>sendEvent</code> for catalog-style events (same as a generic SDK build).
+      </p>
+      <p class="hint">
+        Setup overview:
+        <a class="link" href="https://help.salesforce.com/s/articleView?id=mktg.persnl_web_personalization_manager.htm&amp;type=5" target="_blank" rel="noopener">Web Personalization Manager (Help)</a>
+        ·
+        <a class="link" href="https://developer.salesforce.com/docs/marketing/einstein-personalization/guide/integrate-salesforce-interactions-sdk.html" target="_blank" rel="noopener">Integrate Interactions SDK</a>
+        ·
+        <a class="link" href="https://developer.salesforce.com/docs/marketing/einstein-personalization/guide/request-personalization-through-sitemap.html" target="_blank" rel="noopener">Personalization.fetch via sitemap</a>
+        ·
+        <a class="link" href="https://developer.salesforce.com/docs/data/salesforce-interactions-sdk/guide/c360a-api-catalog-interaction.html" target="_blank" rel="noopener">Catalog interactions / sendEvent</a>
+      </p>
+      <ul class="suggestions">
+        <li><strong>Widgets:</strong> Map content zones in your uploaded <code>sitemap.js</code> to DOM selectors (below). Use <a class="link" href="https://developer.salesforce.com/docs/marketing/einstein-personalization/guide/integrate-personalization-modern-frontend.html" target="_blank" rel="noopener">Content Zone Handlers</a> in SPAs, or transformers in the sitemap for HTML from Decisioning.</li>
+        <li><strong>Behavior graph:</strong> Keep page-view and zone impressions in the sitemap; use <code>sendEvent</code> for high-value clicks. Map web connector DLOs to DMOs and refresh identity/consent per your policies.</li>
+        <li><strong>Alternative:</strong> Keep using server-side <code>/api/personalization/request</code> for demos without the CDN; the SDK path is better for first-party cookies, sitemap-driven capture, and WPM preview.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-top:0;">Status</h2>
+      <p id="status" class="hint">Loading configuration…</p>
+      <div id="sdk-log" class="log" aria-live="polite"></div>
+    </div>
+
+    <div class="card" id="connector-playground">
+      <h2 style="margin-top:0;">Connector playground (categories &amp; products)</h2>
+      <p class="hint">
+        <strong>Category headers</strong> fire a <em>category-level</em> <code>View Catalog Object</code> from this page (works in beacon and standalone). IDs are stable for your schema mapping (e.g. <code>Category</code> type).
+        <strong>Product tiles</strong> use the same element IDs as <code>docs/connector/website_connector_sitemap.js</code>—in <strong>beacon</strong> mode the bundled sitemap sends events; in <strong>standalone</strong> mode this page attaches matching handlers after <code>init</code>.
+      </p>
+
+      <h3 style="margin:16px 0 8px;font-size:15px;color:#032d60;">Browse by category</h3>
+      <div class="category-block">
+        <button type="button" class="category-header" data-sf-category="outdoor-drinkware" data-sf-category-label="Outdoor &amp; drinkware">
+          Outdoor &amp; drinkware
+          <span class="cat-meta">Category-level view · catalog id <code>outdoor-drinkware</code></span>
+        </button>
+        <div class="product-tiles">
+          <button type="button" class="product-tile" id="yeti">Yeti tumbler</button>
+        </div>
+      </div>
+      <div class="category-block">
+        <button type="button" class="category-header" data-sf-category="womens-apparel" data-sf-category-label="Women&#39;s apparel">
+          Women&#39;s apparel
+          <span class="cat-meta">Category-level view · <code>womens-apparel</code></span>
+        </button>
+        <div class="product-tiles">
+          <button type="button" class="product-tile" id="womensJacket">Jacket</button>
+          <button type="button" class="product-tile" id="womensShoe">Shoes</button>
+          <button type="button" class="product-tile" id="womensBackpack">Backpack</button>
+        </div>
+      </div>
+      <div class="category-block">
+        <button type="button" class="category-header" data-sf-category="mens-apparel" data-sf-category-label="Men&#39;s apparel">
+          Men&#39;s apparel
+          <span class="cat-meta">Category-level view · <code>mens-apparel</code></span>
+        </button>
+        <div class="product-tiles">
+          <button type="button" class="product-tile" id="mensJacket">Jacket</button>
+          <button type="button" class="product-tile" id="mensShoe">Shoes</button>
+          <button type="button" class="product-tile" id="mensBackpack">Backpack</button>
+        </div>
+      </div>
+      <div class="category-block">
+        <button type="button" class="category-header" data-sf-category="electronics" data-sf-category-label="Electronics">
+          Electronics
+          <span class="cat-meta">Category-level view · same branch as product tile below</span>
+        </button>
+        <div class="product-tiles">
+          <button type="button" class="product-tile" id="electronics">Shop electronics</button>
+        </div>
+      </div>
+
+      <h3 style="margin:20px 0 8px;font-size:15px;color:#032d60;">Featured promos</h3>
+      <p class="hint" style="margin-top:0;">Promo tiles match sitemap IDs <code>#promo1</code>–<code>#promo3</code>.</p>
+      <div class="promo-row product-tiles">
+        <button type="button" class="product-tile promo-tile" id="promo1">Promo 1</button>
+        <button type="button" class="product-tile promo-tile" id="promo2">Promo 2</button>
+        <button type="button" class="product-tile promo-tile" id="promo3">Promo 3</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-top:0;">Personalization slots (content zones)</h2>
+      <p class="hint">In <strong>standalone</strong> mode, selectors match this page’s inline sitemap. In <strong>beacon</strong> mode, content zones come from your connector’s uploaded sitemap in Salesforce (update <code>docs/connector/website_connector_sitemap.js</code> and re-upload to change). Point names default from <code>INTERACTIONS_PERSONALIZATION_POINTS</code>.</p>
+      <div class="zone" id="ep-ad-primary">
+        <h3>Primary zone (#ep-ad-primary)</h3>
+        <div class="zone-body">Waiting for SDK / fetch…</div>
+      </div>
+      <div class="zone" id="ep-ad-secondary">
+        <h3>Secondary zone (#ep-ad-secondary)</h3>
+        <div class="zone-body">Waiting for SDK / fetch…</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-top:0;">Click behavior (sendEvent)</h2>
+      <p class="hint">Example catalog-style events. Adjust <code>type</code>, <code>id</code>, and attributes to match your catalog and connector schema.</p>
+      <button type="button" id="btn-offer-a">Track: Offer A click</button>
+      <button type="button" id="btn-offer-b">Track: Offer B click</button>
+      <button type="button" class="secondary" id="btn-quickview">Track: Quick view (sample product)</button>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      const statusEl = document.getElementById('status');
+      const logEl = document.getElementById('sdk-log');
+      var sdkConfig = null;
+      var personalizationFetchDone = false;
+      var beaconFallbackTimer = null;
+
+      /** Beacon if server says so, or CDN path is a beacon bundle (covers Heroku mis-typed sdkMode). */
+      function isBeaconMode(cfg) {
+        if (!cfg || !cfg.cdnUrl) return false;
+        var m = (cfg.sdkMode || '').toString().trim().toLowerCase();
+        if (m === 'beacon') return true;
+        return /\/beacon\//i.test(cfg.cdnUrl);
+      }
+
+      function log(line) {
+        const t = new Date().toISOString().slice(11, 23);
+        logEl.textContent += '[' + t + '] ' + line + '\n';
+        logEl.scrollTop = logEl.scrollHeight;
+      }
+
+      function setStatus(text) {
+        statusEl.textContent = text;
+      }
+
+      function loadScript(src) {
+        return new Promise(function (resolve, reject) {
+          var s = document.createElement('script');
+          s.src = src;
+          s.async = true;
+          s.onload = function () { resolve(); };
+          s.onerror = function () { reject(new Error('Failed to load script: ' + src)); };
+          document.head.appendChild(s);
+        });
+      }
+
+      function logPersonalizationFetchTroubleshooting(msg) {
+        log('—');
+        log('Personalization.fetch troubleshooting (Salesforce side):');
+        log('• Point API names must match Data Cloud exactly (env INTERACTIONS_PERSONALIZATION_POINTS). Current: '
+          + JSON.stringify((sdkConfig && sdkConfig.personalizationPoints) || []));
+        log('• Dataspace in init must match your personalization dataspace (INTERACTIONS_DATASPACE). Current: '
+          + ((sdkConfig && sdkConfig.dataspace) || '(not set)'));
+        log('• This error usually means the API returned rows without "data" or "attributes" (no offer payload, or strategy not publishing content).');
+        log('• To test sendEvent/content zones only, set INTERACTIONS_SKIP_PERSONALIZATION_FETCH=true on the server.');
+        if (msg) log('Detail: ' + msg);
+      }
+
+      function runPersonalizationFetchOnce(SI, contextLabel) {
+        if (personalizationFetchDone) {
+          return Promise.resolve();
+        }
+        if (!SI || !SI.Personalization || typeof SI.Personalization.fetch !== 'function') {
+          setStatus('SDK loaded; Personalization.fetch not available (enable Personalization on connector / bundle).');
+          log((contextLabel || 'fetch') + ': Personalization.fetch missing.');
+          return Promise.resolve();
+        }
+        if (sdkConfig && sdkConfig.skipPersonalizationFetch) {
+          log((contextLabel || 'fetch') + ': skipped (skipPersonalizationFetch from server env).');
+          setStatus('SDK ready; Personalization.fetch skipped — sendEvent and zones still work.');
+          return Promise.resolve();
+        }
+        personalizationFetchDone = true;
+        var points = sdkConfig.personalizationPoints && sdkConfig.personalizationPoints.length
+          ? sdkConfig.personalizationPoints
+          : ['Offer_Treatment_Personalization'];
+        log((contextLabel || 'fetch') + ': Personalization.fetch(' + points.join(', ') + ')');
+        var fetchResult;
+        try {
+          fetchResult = SI.Personalization.fetch(points);
+        } catch (e) {
+          personalizationFetchDone = false;
+          var syncMsg = e && e.message ? e.message : String(e);
+          log('Personalization.fetch threw (sync): ' + syncMsg);
+          logPersonalizationFetchTroubleshooting(syncMsg);
+          setStatus('SDK loaded; Personalization.fetch failed (see log). sendEvent still works.');
+          return Promise.resolve();
+        }
+        if (fetchResult && typeof fetchResult.then === 'function') {
+          return Promise.resolve(fetchResult)
+            .then(function (response) {
+              try {
+                renderFetchResult(response);
+                setStatus('SDK ready; Personalization.fetch completed.');
+              } catch (renderErr) {
+                log('After fetch: ' + (renderErr && renderErr.message ? renderErr.message : renderErr));
+                setStatus('SDK ready; could not render fetch JSON (see log).');
+              }
+            })
+            .catch(function (e) {
+              personalizationFetchDone = false;
+              var errMsg = e && e.message ? e.message : String(e);
+              log('Personalization.fetch error: ' + errMsg);
+              logPersonalizationFetchTroubleshooting(errMsg);
+              setStatus('SDK loaded; Personalization.fetch failed (see log). sendEvent still works.');
+              return null;
+            });
+        }
+        personalizationFetchDone = false;
+        log('Personalization.fetch did not return a Promise.');
+        setStatus('SDK ready (fetch return type unexpected). sendEvent still works.');
+        return Promise.resolve();
+      }
+
+      function renderFetchResult(response) {
+        var primary = document.querySelector('#ep-ad-primary .zone-body');
+        var secondary = document.querySelector('#ep-ad-secondary .zone-body');
+        if (!primary || !secondary) return;
+
+        try {
+          var text = JSON.stringify(response, null, 2);
+          primary.textContent = text.slice(0, 4000) + (text.length > 4000 ? '\n…' : '');
+          secondary.textContent = 'Full response logged above. Wire transformers or WPM to render HTML offers here.';
+          log('Personalization.fetch resolved; inspect primary zone for JSON snapshot.');
+        } catch (e) {
+          primary.textContent = String(e.message);
+        }
+      }
+
+      function trackCatalogClick(nameConstant, catalogId, catalogType, attrs) {
+        var SI = window.SalesforceInteractions;
+        if (!SI || typeof SI.sendEvent !== 'function') {
+          log('sendEvent not available (SDK not loaded or wrong bundle).');
+          return;
+        }
+        var interactionName = nameConstant;
+        if (typeof nameConstant === 'string') {
+          interactionName = nameConstant;
+        } else if (SI.CatalogObjectInteractionName && nameConstant) {
+          interactionName = nameConstant;
+        }
+        var payload = {
+          interaction: {
+            name: interactionName,
+            catalogObject: {
+              id: catalogId,
+              type: catalogType || 'Offer',
+              attributes: attrs || {}
+            }
+          }
+        };
+        Promise.resolve(SI.sendEvent(payload))
+          .then(function () { log('sendEvent ok: ' + catalogId); })
+          .catch(function (e) { log('sendEvent error: ' + (e && e.message ? e.message : e)); });
+      }
+
+      function trackCategoryView(categoryId, displayName) {
+        var SI = window.SalesforceInteractions;
+        if (!SI || typeof SI.sendEvent !== 'function') {
+          log('sendEvent not available for category view.');
+          return;
+        }
+        var name = SI.CatalogObjectInteractionName
+          ? SI.CatalogObjectInteractionName.ViewCatalogObject
+          : 'View Catalog Object';
+        var payload = {
+          interaction: {
+            name: name,
+            catalogObject: {
+              id: categoryId,
+              type: 'Category',
+              attributes: {
+                displayName: displayName || categoryId,
+                hierarchyLevel: 'category'
+              }
+            }
+          }
+        };
+        Promise.resolve(SI.sendEvent(payload))
+          .then(function () { log('category view ok: ' + categoryId); })
+          .catch(function (e) { log('category view error: ' + (e && e.message ? e.message : e)); });
+      }
+
+      function setupPlaygroundCategoryDelegation() {
+        var root = document.getElementById('connector-playground');
+        if (!root) return;
+        root.addEventListener('click', function (e) {
+          var h = e.target.closest('.category-header[data-sf-category]');
+          if (!h) return;
+          e.preventDefault();
+          trackCategoryView(h.getAttribute('data-sf-category'), h.getAttribute('data-sf-category-label') || '');
+        });
+      }
+
+      function attachPlaygroundProductClickHandlers() {
+        if (!sdkConfig || isBeaconMode(sdkConfig)) return;
+        var products = [
+          { el: 'yeti', id: 'yeti', attrs: { productCategory: 'Outdoor' } },
+          { el: 'womensJacket', id: 'womensJacket', attrs: { productCategory: 'WomensApparel' } },
+          { el: 'mensJacket', id: 'mensJacket', attrs: { productCategory: 'MensApparel' } },
+          { el: 'electronics', id: 'electronics', attrs: { productCategory: 'Electronics' } },
+          { el: 'mensShoe', id: 'mensShoe', attrs: { productCategory: 'MensApparel' } },
+          { el: 'womensShoe', id: 'womensShoe', attrs: { productCategory: 'WomensApparel' } },
+          { el: 'womensBackpack', id: 'womensBackpack', attrs: { productCategory: 'WomensApparel' } },
+          { el: 'mensBackpack', id: 'mensBackpack', attrs: { productCategory: 'MensApparel' } },
+          { el: 'promo1', id: 'product-promo1', attrs: { productCategory: 'Promo' } },
+          { el: 'promo2', id: 'product-promo2', attrs: { productCategory: 'Promo' } },
+          { el: 'promo3', id: 'product-promo3', attrs: { productCategory: 'Promo' } }
+        ];
+        products.forEach(function (p) {
+          var node = document.getElementById(p.el);
+          if (!node) return;
+          node.addEventListener('click', function () {
+            var SI = window.SalesforceInteractions;
+            var name = SI && SI.CatalogObjectInteractionName
+              ? SI.CatalogObjectInteractionName.ViewCatalogObject
+              : 'View Catalog Object';
+            trackCatalogClick(name, p.id, 'Product', p.attrs);
+          });
+        });
+        log('Standalone: product/promo tile handlers attached (playground)');
+      }
+
+      setupPlaygroundCategoryDelegation();
+
+      function bootBeaconBundle() {
+        beaconFallbackTimer = setTimeout(function () {
+          beaconFallbackTimer = null;
+          log('Beacon fallback: attempting Personalization.fetch (OnInit may have fired early)');
+          Promise.resolve(runPersonalizationFetchOnce(window.SalesforceInteractions, 'beacon fallback')).catch(
+            function (e) {
+              log('beacon fallback fetch: ' + (e && e.message ? e.message : e));
+            }
+          );
+        }, 4000);
+        document.addEventListener(
+          'interactions:onInit',
+          function () {
+            if (beaconFallbackTimer) {
+              clearTimeout(beaconFallbackTimer);
+              beaconFallbackTimer = null;
+            }
+            log('interactions:onInit (beacon bundle)');
+            Promise.resolve(runPersonalizationFetchOnce(window.SalesforceInteractions, 'beacon OnInit')).catch(
+              function (e) {
+                log('beacon OnInit fetch: ' + (e && e.message ? e.message : e));
+              }
+            );
+          },
+          { once: true }
+        );
+        setStatus('Beacon bundle: consent set; script will run embedded init + sitemap.');
+      }
+
+      function bootSdk() {
+        var SI = window.SalesforceInteractions;
+        if (!SI) {
+          setStatus('SalesforceInteractions not found after script load.');
+          log('Check INTERACTIONS_SDK_CDN_URL and connector Integration Guide.');
+          return;
+        }
+
+        var initOpts = {
+          consents: [
+            {
+              purpose: SI.ConsentPurpose.Tracking,
+              provider: 'RTOM demo',
+              status: SI.ConsentStatus.OptIn
+            }
+          ]
+        };
+
+        if (sdkConfig.dataspace) {
+          initOpts.personalization = { dataspace: sdkConfig.dataspace };
+        }
+        if (sdkConfig.cookieDomain) {
+          initOpts.cookieDomain = sdkConfig.cookieDomain;
+        }
+
+        SI.init(initOpts)
+          .then(function () {
+            log('init() resolved');
+            var sitemapConfig = {
+              global: {},
+              pageTypeDefault: {
+                name: 'default',
+                interaction: { name: 'default page', eventType: 'userEngagement' }
+              },
+              pageTypes: [
+                {
+                  name: 'interactions_sdk_demo',
+                  isMatch: function () {
+                    return /interactions-sdk/.test(window.location.pathname);
+                  },
+                  interaction: { name: 'rtom interactions sdk demo', eventType: 'userEngagement' },
+                  contentZones: [
+                    { name: 'ep_demo_primary', selector: '#ep-ad-primary .zone-body' },
+                    { name: 'ep_demo_secondary', selector: '#ep-ad-secondary .zone-body' }
+                  ]
+                }
+              ]
+            };
+            if (typeof SI.initSitemap === 'function') {
+              SI.initSitemap(sitemapConfig);
+              log('initSitemap() called (demo page + content zones)');
+            } else {
+              log('initSitemap not available on this SDK build');
+            }
+
+            attachPlaygroundProductClickHandlers();
+            return Promise.resolve(runPersonalizationFetchOnce(SI, 'standalone init')).catch(function (e) {
+              personalizationFetchDone = false;
+              var errMsg = e && e.message ? e.message : String(e);
+              log('Init chain (fetch wrapper): ' + errMsg);
+              logPersonalizationFetchTroubleshooting(errMsg);
+              setStatus('SDK loaded; Personalization.fetch failed (see log). sendEvent still works.');
+              return null;
+            });
+          })
+          .catch(function (e) {
+            var errMsg = e && e.message ? e.message : String(e);
+            setStatus('SDK error (init): ' + errMsg);
+            log('init() or sitemap failed: ' + errMsg);
+          });
+      }
+
+      document.getElementById('btn-offer-a').addEventListener('click', function () {
+        var SI = window.SalesforceInteractions;
+        var name = SI && SI.CatalogObjectInteractionName
+          ? SI.CatalogObjectInteractionName.ViewCatalogObject
+          : 'View Catalog Object';
+        trackCatalogClick(name, 'RTOM-OFFER-A', 'Offer', { campaign: 'demo', slot: 'primary' });
+      });
+      document.getElementById('btn-offer-b').addEventListener('click', function () {
+        var SI = window.SalesforceInteractions;
+        var name = SI && SI.CatalogObjectInteractionName
+          ? SI.CatalogObjectInteractionName.ViewCatalogObject
+          : 'View Catalog Object';
+        trackCatalogClick(name, 'RTOM-OFFER-B', 'Offer', { campaign: 'demo', slot: 'secondary' });
+      });
+      document.getElementById('btn-quickview').addEventListener('click', function () {
+        var SI = window.SalesforceInteractions;
+        var name = SI && SI.CatalogObjectInteractionName
+          ? SI.CatalogObjectInteractionName.QuickViewCatalogObject
+          : 'Quick View Catalog Object';
+        trackCatalogClick(name, 'SKU-DEMO-001', 'Product', { name: 'Demo sneaker' });
+      });
+
+      fetch('/api/personalization/interactions-config')
+        .then(function (r) { return r.json(); })
+        .then(function (cfg) {
+          sdkConfig = cfg;
+          if (!cfg.cdnUrl) {
+            setStatus('Set INTERACTIONS_SDK_CDN_URL in server env (from Website connector → Integration Guide).');
+            log('No CDN URL configured.');
+            return;
+          }
+          if (isBeaconMode(cfg)) {
+            window.CONSENTS = [
+              { purpose: 'Tracking', provider: 'RTOM demo', status: 'Opt In' }
+            ];
+            if ((cfg.sdkMode || '').toString().trim().toLowerCase() !== 'beacon') {
+              log('Treating as beacon: CDN URL contains /beacon/ (sdkMode from server was "' + (cfg.sdkMode || '') + '")');
+            } else {
+              log('sdkMode=beacon: window.CONSENTS set before script (required by bundled sitemap)');
+            }
+            bootBeaconBundle();
+          } else {
+            log('sdkMode=standalone: page will call init + initSitemap after load');
+          }
+          setStatus('Loading SDK from CDN…');
+          log('CDN: ' + cfg.cdnUrl + ' · effective: ' + (isBeaconMode(cfg) ? 'beacon' : 'standalone'));
+          return loadScript(cfg.cdnUrl);
+        })
+        .then(function () {
+          if (sdkConfig && sdkConfig.cdnUrl) {
+            if (isBeaconMode(sdkConfig)) {
+              log('Beacon script onload (init may still be async inside bundle; page will not call init/initSitemap)');
+            } else {
+              bootSdk();
+            }
+          }
+        })
+        .catch(function (e) {
+          setStatus('Failed: ' + (e && e.message ? e.message : e));
+          log(String(e && e.message ? e.message : e));
+        });
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RTOM Deploy Test</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; background: #f5f7fb; color: #1f2937; }
+    .wrap { max-width: 860px; margin: 40px auto; background: white; border: 1px solid #e5e7eb; border-radius: 12px; padding: 24px; }
+    h1 { margin-top: 0; }
+    .ok { color: #0f766e; font-weight: 700; }
+    .row { margin: 12px 0; }
+    code, pre { background: #111827; color: #e5e7eb; padding: 10px; border-radius: 8px; display: block; overflow: auto; }
+    button { background: #2563eb; color: white; border: none; border-radius: 8px; padding: 10px 14px; cursor: pointer; }
+    button:hover { background: #1d4ed8; }
+    .badge { display:inline-block; padding:4px 8px; border-radius:999px; background:#dbeafe; color:#1d4ed8; font-size:12px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>RTOM Deploy Test Page</h1>
+    <p class="ok">If you can see this page on Heroku, GitHub auto-deploy worked.</p>
+    <div class="row"><span class="badge">Build marker</span> <strong id="marker">RTOM-DEPLOY-TEST-v1</strong></div>
+    <div class="row">Server time from <code>/api/health</code>:</div>
+    <pre id="health">Loading...</pre>
+    <button id="refresh">Refresh Health Check</button>
+    <div class="row" style="margin-top:18px;">
+      <a href="/">Back to Personalization App</a>
+    </div>
+  </div>
+
+  <script>
+    async function loadHealth() {
+      try {
+        const res = await fetch('/api/health');
+        const data = await res.json();
+        document.getElementById('health').textContent = JSON.stringify(data, null, 2);
+      } catch (e) {
+        document.getElementById('health').textContent = 'Health check failed: ' + e.message;
+      }
+    }
+    document.getElementById('refresh').addEventListener('click', loadHealth);
+    loadHealth();
+  </script>
+</body>
+</html>
