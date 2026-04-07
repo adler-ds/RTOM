@@ -49,6 +49,9 @@
     button:hover { filter: brightness(0.95); }
     ul.suggestions { margin: 8px 0 0; padding-left: 1.25rem; font-size: 13px; color: #444; line-height: 1.5; }
     .link { color: var(--sf-blue); }
+    .identity-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; margin-top: 10px; }
+    .identity-row label { font-size: 13px; display: block; margin-bottom: 4px; color: #444; }
+    .identity-row input[type="text"] { min-width: 260px; padding: 8px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; }
     #connector-playground .category-block {
       border: 1px solid var(--border);
       border-radius: 10px;
@@ -143,6 +146,23 @@
       <h2 style="margin-top:0;">Status</h2>
       <p id="status" class="hint">Loading configuration…</p>
       <div id="sdk-log" class="log" aria-live="polite"></div>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-top:0;">Match Ads Carousel (known visitor)</h2>
+      <p class="hint">
+        <strong>Ads Carousel</strong> calls <code>/api/personalization/request</code> with the <strong>Individual ID</strong> you type (server OAuth → Decisioning). The <strong>Interactions SDK</strong> instead uses the
+        <strong>browser profile</strong> (cookie / anonymous id) for <code>Personalization.fetch</code>, so the same point and dataspace can still fail until that profile is linked to your Contact.
+        Optionally set the same Contact Id here (or <code>INTERACTIONS_TEST_INDIVIDUAL_ID</code> on the server): the page sends <code>sendEvent({ user: { identities: { … } } })</code> (default key <code>CRMId</code>), waits, then runs <code>Personalization.fetch</code>.
+        If your connector maps a different identity field, set <code>INTERACTIONS_IDENTITY_KEY</code>.
+      </p>
+      <div class="identity-row">
+        <div>
+          <label for="rtom-test-individual-id">Individual ID (optional, e.g. Contact Id from Ads Carousel)</label>
+          <input type="text" id="rtom-test-individual-id" placeholder="003xxxxxxxxxxxxxxx" autocomplete="off" />
+        </div>
+        <button type="button" class="secondary" id="btn-retry-fetch-identity">Send identity &amp; retry fetch</button>
+      </div>
     </div>
 
     <div class="card" id="connector-playground">
@@ -265,6 +285,7 @@
       function logPersonalizationFetchTroubleshooting(msg) {
         log('—');
         log('Personalization.fetch troubleshooting (Salesforce side):');
+        log('• If /ads-carousel works with the same point: the server sends your Individual ID; the SDK uses the browser profile unless you send user.identities (see "Match Ads Carousel" above).');
         log('• Point API names must match Data Cloud exactly (env INTERACTIONS_PERSONALIZATION_POINTS). Current: '
           + JSON.stringify((sdkConfig && sdkConfig.personalizationPoints) || []));
         log('• Dataspace in init must match your personalization dataspace (INTERACTIONS_DATASPACE). Current: '
@@ -272,6 +293,48 @@
         log('• This error usually means the API returned rows without "data" or "attributes" (no offer payload, or strategy not publishing content).');
         log('• To test sendEvent/content zones only, set INTERACTIONS_SKIP_PERSONALIZATION_FETCH=true on the server.');
         if (msg) log('Detail: ' + msg);
+      }
+
+      function getEffectiveTestIndividualId() {
+        var input = document.getElementById('rtom-test-individual-id');
+        if (input && String(input.value || '').trim()) {
+          return String(input.value).trim();
+        }
+        return (sdkConfig && sdkConfig.testIndividualId) ? String(sdkConfig.testIndividualId).trim() : '';
+      }
+
+      function sendKnownUserIdentity(SI, individualId, identityKey) {
+        var key = identityKey || 'CRMId';
+        var identities = {};
+        identities[key] = individualId;
+        log('sendEvent: user.identities.' + key + ' = ' + individualId.slice(0, 6) + '…');
+        return Promise.resolve(SI.sendEvent({ user: { identities: identities } }));
+      }
+
+      function schedulePersonalizationFetch(SI, contextLabel) {
+        var id = getEffectiveTestIndividualId();
+        var delay = (sdkConfig && typeof sdkConfig.identityDelayMs === 'number')
+          ? sdkConfig.identityDelayMs
+          : 2000;
+        var key = (sdkConfig && sdkConfig.identityKey) ? sdkConfig.identityKey : 'CRMId';
+        if (!id) {
+          return Promise.resolve(runPersonalizationFetchOnce(SI, contextLabel));
+        }
+        log(contextLabel + ': known visitor — waiting ' + delay + 'ms after identity before Personalization.fetch');
+        return sendKnownUserIdentity(SI, id, key)
+          .then(function () {
+            log('known-identity sendEvent settled');
+            return new Promise(function (resolve) {
+              setTimeout(resolve, delay);
+            });
+          })
+          .then(function () {
+            return runPersonalizationFetchOnce(SI, contextLabel + ' (after identity)');
+          })
+          .catch(function (e) {
+            log('identity before fetch failed: ' + (e && e.message ? e.message : e));
+            return runPersonalizationFetchOnce(SI, contextLabel + ' (identity failed, fetch anyway)');
+          });
       }
 
       function runPersonalizationFetchOnce(SI, contextLabel) {
@@ -445,7 +508,7 @@
         beaconFallbackTimer = setTimeout(function () {
           beaconFallbackTimer = null;
           log('Beacon fallback: attempting Personalization.fetch (OnInit may have fired early)');
-          Promise.resolve(runPersonalizationFetchOnce(window.SalesforceInteractions, 'beacon fallback')).catch(
+          Promise.resolve(schedulePersonalizationFetch(window.SalesforceInteractions, 'beacon fallback')).catch(
             function (e) {
               log('beacon fallback fetch: ' + (e && e.message ? e.message : e));
             }
@@ -459,7 +522,7 @@
               beaconFallbackTimer = null;
             }
             log('interactions:onInit (beacon bundle)');
-            Promise.resolve(runPersonalizationFetchOnce(window.SalesforceInteractions, 'beacon OnInit')).catch(
+            Promise.resolve(schedulePersonalizationFetch(window.SalesforceInteractions, 'beacon OnInit')).catch(
               function (e) {
                 log('beacon OnInit fetch: ' + (e && e.message ? e.message : e));
               }
@@ -526,7 +589,7 @@
             }
 
             attachPlaygroundProductClickHandlers();
-            return Promise.resolve(runPersonalizationFetchOnce(SI, 'standalone init')).catch(function (e) {
+            return Promise.resolve(schedulePersonalizationFetch(SI, 'standalone init')).catch(function (e) {
               personalizationFetchDone = false;
               var errMsg = e && e.message ? e.message : String(e);
               log('Init chain (fetch wrapper): ' + errMsg);
@@ -541,6 +604,37 @@
             log('init() or sitemap failed: ' + errMsg);
           });
       }
+
+      document.getElementById('btn-retry-fetch-identity').addEventListener('click', function () {
+        var SI = window.SalesforceInteractions;
+        if (!SI || typeof SI.sendEvent !== 'function') {
+          log('SDK not ready; load the page with a valid INTERACTIONS_SDK_CDN_URL.');
+          return;
+        }
+        var id = getEffectiveTestIndividualId();
+        if (!id) {
+          log('Enter Individual ID (same as Ads Carousel) or set INTERACTIONS_TEST_INDIVIDUAL_ID on the server.');
+          return;
+        }
+        personalizationFetchDone = false;
+        var key = (sdkConfig && sdkConfig.identityKey) ? sdkConfig.identityKey : 'CRMId';
+        var delay = (sdkConfig && typeof sdkConfig.identityDelayMs === 'number')
+          ? sdkConfig.identityDelayMs
+          : 2000;
+        log('Manual: identity then fetch in ' + delay + 'ms');
+        Promise.resolve(sendKnownUserIdentity(SI, id, key))
+          .then(function () {
+            return new Promise(function (resolve) {
+              setTimeout(resolve, delay);
+            });
+          })
+          .then(function () {
+            return runPersonalizationFetchOnce(SI, 'manual retry');
+          })
+          .catch(function (e) {
+            log('Manual retry error: ' + (e && e.message ? e.message : e));
+          });
+      });
 
       document.getElementById('btn-offer-a').addEventListener('click', function () {
         var SI = window.SalesforceInteractions;
@@ -568,6 +662,10 @@
         .then(function (r) { return r.json(); })
         .then(function (cfg) {
           sdkConfig = cfg;
+          var indEl = document.getElementById('rtom-test-individual-id');
+          if (indEl && cfg.testIndividualId && !String(indEl.value || '').trim()) {
+            indEl.value = cfg.testIndividualId;
+          }
           if (!cfg.cdnUrl) {
             setStatus('Set INTERACTIONS_SDK_CDN_URL in server env (from Website connector → Integration Guide).');
             log('No CDN URL configured.');
