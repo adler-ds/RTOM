@@ -240,15 +240,6 @@
       flex-direction: column;
       min-height: 520px;
     }
-    .plan-card-ad__tier {
-      margin: 0;
-      padding: 18px 20px 12px;
-      font-size: 1.25rem;
-      font-weight: 700;
-      color: var(--xero-navy);
-      border-bottom: 1px solid var(--border);
-      background: linear-gradient(180deg, #fff 0%, #fafcfd 100%);
-    }
     .plan-card-ad__media {
       flex: 1;
       min-height: 440px;
@@ -398,8 +389,8 @@
       </div>
 
       <p class="demo-footnote">
-        Demo page for Salesforce Personalization. Layout and naming echo Xero’s public marketing patterns; not affiliated with Xero Limited.
-        Plan tier labels (Early, Growing, Established) are shown for the first three slots; additional offers scroll horizontally.
+        Demo page for Salesforce Personalization. Layout echoes Xero’s public marketing patterns; not affiliated with Xero Limited.
+        More than three offers scroll horizontally.
       </p>
     </div>
   </section>
@@ -416,8 +407,6 @@
       const DEFAULT_INDIVIDUAL_ID = '003Ws00000S4JcGIAV';
       const DATASPACE = 'default';
       const POINT_NAME = 'Offer_Treatment_Personalization';
-      const PLAN_TIERS = ['Early', 'Growing', 'Established'];
-
       const carouselContainer = document.getElementById('carouselContainer');
       const carouselControls = document.getElementById('carouselControls');
       const scrollLeftBtn = document.getElementById('scrollLeft');
@@ -532,11 +521,6 @@
         return unique;
       }
 
-      function tierLabel(index) {
-        if (index < PLAN_TIERS.length) return PLAN_TIERS[index];
-        return 'Offer ' + (index + 1);
-      }
-
       function renderImageCarousel(ads) {
         const list = dedupeImageAds(ads.filter((a) => a && a.imageUrl));
         if (!list.length) {
@@ -558,15 +542,11 @@
           const card = document.createElement('article');
           card.className = 'plan-card-ad';
 
-          const title = document.createElement('h2');
-          title.className = 'plan-card-ad__tier';
-          title.textContent = tierLabel(i);
-
           const media = document.createElement('div');
           media.className = 'plan-card-ad__media';
           const img = document.createElement('img');
           img.src = ad.imageUrl;
-          img.alt = 'Personalized plan creative — ' + tierLabel(i);
+          img.alt = 'Personalized offer ' + (i + 1);
           img.loading = 'lazy';
           img.onerror = function () {
             media.textContent = 'Image failed to load';
@@ -586,7 +566,6 @@
           foot.appendChild(document.createElement('br'));
           foot.appendChild(learn);
 
-          card.appendChild(title);
           card.appendChild(media);
           card.appendChild(foot);
           carousel.appendChild(card);
