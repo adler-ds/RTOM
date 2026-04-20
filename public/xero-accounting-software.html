@@ -12,8 +12,6 @@
       --xero-ink: #2b3a42;
       --xero-muted: #5c6a73;
       --xero-plans-bg: #e8f4fc;
-      --xero-green: #127658;
-      --xero-green-hover: #0f6349;
       --card: #fff;
       --border: #d4e4ed;
       --border-strong: #b8d4e6;
@@ -238,7 +236,6 @@
       overflow: hidden;
       display: flex;
       flex-direction: column;
-      min-height: 520px;
     }
     .plan-card-ad__media {
       flex: 1;
@@ -256,33 +253,6 @@
       height: auto;
       object-fit: contain;
       display: block;
-    }
-    .plan-card-ad__footer {
-      padding: 14px 20px 18px;
-      border-top: 1px solid var(--border);
-      text-align: center;
-      background: #fff;
-    }
-    .plan-card-ad__footer .btn-buy {
-      display: inline-block;
-      width: 100%;
-      max-width: 220px;
-      padding: 11px 20px;
-      border-radius: 6px;
-      background: var(--xero-green);
-      color: #fff;
-      font-weight: 700;
-      font-size: 0.9375rem;
-      border: none;
-      cursor: default;
-      margin-bottom: 8px;
-    }
-    .plan-card-ad__learn {
-      font-size: 0.875rem;
-      font-weight: 600;
-      color: var(--xero-teal-hover);
-      text-decoration: underline;
-      cursor: default;
     }
 
     .empty {
@@ -314,7 +284,6 @@
     }
     @media (max-width: 640px) {
       .carousel { grid-auto-columns: minmax(260px, 92%); }
-      .plan-card-ad { min-height: 480px; }
       .plan-card-ad__media { min-height: 380px; }
       .plan-card-ad__media img { max-height: 420px; }
       .site-header { flex-direction: column; align-items: flex-start; gap: 14px; }
@@ -538,20 +507,7 @@
           };
           media.appendChild(img);
 
-          const foot = document.createElement('div');
-          foot.className = 'plan-card-ad__footer';
-          const fakeBuy = document.createElement('span');
-          fakeBuy.className = 'btn-buy';
-          fakeBuy.textContent = 'Buy now';
-          const learn = document.createElement('span');
-          learn.className = 'plan-card-ad__learn';
-          learn.textContent = 'Learn more';
-          foot.appendChild(fakeBuy);
-          foot.appendChild(document.createElement('br'));
-          foot.appendChild(learn);
-
           card.appendChild(media);
-          card.appendChild(foot);
           carousel.appendChild(card);
         });
 
