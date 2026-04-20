@@ -3,17 +3,20 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Accounting software for your business | Retail Banking demo</title>
+  <title>Xero Accounting Software | Plans &amp; pricing demo</title>
   <style>
     :root {
       --xero-teal: #13b5ea;
-      --xero-teal-dark: #0d8fbd;
+      --xero-teal-hover: #0fa1d4;
       --xero-navy: #1a2b3c;
-      --xero-ink: #1d2c35;
-      --muted: #5c6a73;
-      --surface: #f7f9fa;
+      --xero-ink: #2b3a42;
+      --xero-muted: #5c6a73;
+      --xero-plans-bg: #e8f4fc;
+      --xero-green: #127658;
+      --xero-green-hover: #0f6349;
       --card: #fff;
-      --border: #e3e8ea;
+      --border: #d4e4ed;
+      --border-strong: #b8d4e6;
     }
     * { box-sizing: border-box; }
     body {
@@ -23,98 +26,154 @@
       background: #fff;
       line-height: 1.5;
     }
-    a { color: var(--xero-teal-dark); text-decoration: none; }
+    a { color: var(--xero-teal-hover); }
     a:hover { text-decoration: underline; }
 
-    .top-bar {
+    /* —— Top bar (Xero-style) —— */
+    .site-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 14px 24px;
-      border-bottom: 1px solid var(--border);
+      padding: 16px 28px;
       background: #fff;
+      border-bottom: 1px solid #e7ecef;
       position: sticky;
       top: 0;
-      z-index: 20;
+      z-index: 30;
     }
-    .brand {
-      font-weight: 700;
-      font-size: 1.25rem;
-      letter-spacing: -0.02em;
-      color: var(--xero-navy);
+    .logo-xero {
+      font-weight: 800;
+      font-size: 1.75rem;
+      letter-spacing: -0.04em;
+      color: var(--xero-teal);
+      text-decoration: none;
     }
-    .top-actions { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
-    .top-actions a.nav-link { color: var(--xero-ink); font-size: 0.9375rem; }
+    .logo-xero:hover { text-decoration: none; color: var(--xero-teal-hover); }
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
     .btn {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      padding: 10px 18px;
+      padding: 10px 20px;
       border-radius: 999px;
       font-weight: 600;
       font-size: 0.9375rem;
       border: none;
       cursor: pointer;
-      transition: background 0.15s ease;
+      text-decoration: none;
+      transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
     }
-    .btn-primary { background: var(--xero-teal); color: #fff; }
-    .btn-primary:hover { background: var(--xero-teal-dark); }
-    .btn-ghost { background: transparent; color: var(--xero-ink); border: 1px solid var(--border); }
+    .btn-navy { background: var(--xero-navy); color: #fff; }
+    .btn-navy:hover { background: #243a52; color: #fff; text-decoration: none; }
+    .btn-outline {
+      background: #fff;
+      color: var(--xero-navy);
+      border: 2px solid var(--xero-navy);
+    }
+    .btn-outline:hover { background: #f5f8fa; text-decoration: none; }
+    .btn-ghost {
+      background: transparent;
+      color: var(--xero-ink);
+      border: 1px solid var(--border-strong);
+    }
+    .btn-ghost:hover { background: #f5fafc; }
+    .nav-tools { font-size: 0.875rem; }
+    .nav-tools a { color: var(--xero-muted); margin-right: 14px; }
+    .nav-tools a:hover { color: var(--xero-navy); }
 
-    .hero {
-      background: linear-gradient(160deg, #0f2533 0%, #1a3d52 45%, #1a2b3c 100%);
-      color: #fff;
-      padding: 56px 24px 72px;
+    /* —— Intro (first sections, Xero-like) —— */
+    .intro {
+      padding: 48px 24px 56px;
       text-align: center;
+      background: #fff;
     }
-    .hero h1 {
-      margin: 0 auto 16px;
-      max-width: 720px;
-      font-size: clamp(1.75rem, 4vw, 2.5rem);
+    .intro__stat {
+      margin: 0 auto 12px;
+      max-width: 640px;
+      font-size: clamp(1.35rem, 3vw, 1.85rem);
       font-weight: 700;
-      letter-spacing: -0.03em;
-      line-height: 1.2;
+      color: var(--xero-navy);
+      letter-spacing: -0.02em;
+      line-height: 1.25;
     }
-    .hero .lead {
-      margin: 0 auto 28px;
-      max-width: 560px;
-      font-size: 1.125rem;
-      opacity: 0.92;
+    .intro__stat em {
+      font-style: normal;
+      color: var(--xero-teal);
     }
-    .hero-bullets {
+    .intro__bullets {
       display: flex;
       flex-wrap: wrap;
       justify-content: center;
-      gap: 12px 24px;
-      margin-bottom: 28px;
+      gap: 10px 22px;
+      margin: 20px 0 28px;
       font-size: 0.9375rem;
-      opacity: 0.95;
+      color: var(--xero-muted);
     }
-    .hero-bullets span::before { content: '✓ '; color: var(--xero-teal); font-weight: 700; }
+    .intro__bullets span::before {
+      content: '✓ ';
+      color: var(--xero-teal);
+      font-weight: 700;
+    }
+    .intro .btn-navy { padding: 12px 28px; font-size: 1rem; }
 
-    .profile-strip {
-      max-width: 960px;
-      margin: -36px auto 0;
-      padding: 0 24px 40px;
-      position: relative;
-      z-index: 2;
+    /* —— Plans + ads section (light blue band, matches pricing page) —— */
+    .plans-band {
+      background: var(--xero-plans-bg);
+      padding: 48px 24px 72px;
+      border-top: 1px solid var(--border);
     }
-    .profile-card {
+    .plans-inner {
+      max-width: 1180px;
+      margin: 0 auto;
+    }
+    .plans-band h1 {
+      margin: 0 0 12px;
+      text-align: center;
+      font-size: clamp(1.65rem, 3.5vw, 2.25rem);
+      font-weight: 700;
+      color: var(--xero-navy);
+      letter-spacing: -0.02em;
+    }
+    .plans-band .sub {
+      text-align: center;
+      margin: 0 auto 28px;
+      max-width: 560px;
+      font-size: 1.0625rem;
+      color: var(--xero-muted);
+    }
+    .plans-ctas {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 36px;
+    }
+
+    /* Viewer toggle (stays in this section) */
+    .viewer-panel {
       background: var(--card);
-      border-radius: 16px;
-      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
-      border: 1px solid var(--border);
-      padding: 20px 24px;
+      border: 1px solid var(--border-strong);
+      border-radius: 12px;
+      padding: 18px 22px;
+      margin: 0 auto 28px;
+      max-width: 920px;
+      box-shadow: 0 2px 12px rgba(26, 43, 60, 0.06);
     }
-    .profile-card h2 {
-      margin: 0 0 6px;
-      font-size: 1rem;
+    .viewer-panel h2 {
+      margin: 0 0 4px;
+      font-size: 0.9375rem;
+      font-weight: 700;
       color: var(--xero-navy);
     }
-    .profile-card .sub {
-      margin: 0 0 16px;
+    .viewer-panel .hint {
+      margin: 0 0 14px;
       font-size: 0.8125rem;
-      color: var(--muted);
+      color: var(--xero-muted);
     }
     .viewer-toggle {
       display: flex;
@@ -129,13 +188,13 @@
       pointer-events: none;
     }
     .viewer-toggle label {
-      padding: 10px 16px;
+      padding: 9px 16px;
       border-radius: 999px;
-      border: 1px solid var(--border);
-      font-size: 0.875rem;
+      border: 1px solid var(--border-strong);
+      font-size: 0.8125rem;
       font-weight: 600;
       cursor: pointer;
-      background: var(--surface);
+      background: #f7fbfd;
       color: var(--xero-ink);
       transition: border-color 0.15s, background 0.15s, color 0.15s;
     }
@@ -149,161 +208,205 @@
       border-color: var(--xero-navy);
     }
     .status-line {
-      margin-top: 14px;
-      font-size: 0.8125rem;
-      color: var(--muted);
+      margin-top: 12px;
+      font-size: 0.75rem;
+      color: var(--xero-muted);
       min-height: 1.25em;
     }
 
-    .offers-section {
-      padding: 24px 24px 64px;
-      background: var(--surface);
-    }
-    .offers-inner { max-width: 1120px; margin: 0 auto; }
-    .offers-section h2 {
+    .section-kicker {
       text-align: center;
-      font-size: 1.5rem;
-      margin: 0 0 8px;
-      color: var(--xero-navy);
+      font-size: 0.8125rem;
+      color: var(--xero-muted);
+      margin: 0 0 20px;
     }
-    .offers-section .section-lead {
-      text-align: center;
-      color: var(--muted);
-      margin: 0 0 28px;
-      font-size: 0.9375rem;
+    .section-kicker code {
+      font-size: 0.75rem;
+      background: rgba(255, 255, 255, 0.8);
+      padding: 2px 6px;
+      border-radius: 4px;
+      border: 1px solid var(--border);
     }
 
+    /* Carousel: Xero plan cards; large image area, contain = no cropped text */
     .carousel-wrap { position: relative; }
     .carousel {
       display: grid;
       grid-auto-flow: column;
-      grid-auto-columns: calc((100% - 32px) / 3);
-      gap: 16px;
+      grid-auto-columns: minmax(300px, calc((100% - 40px) / 3));
+      gap: 20px;
       overflow-x: auto;
       scroll-snap-type: x mandatory;
-      padding-bottom: 12px;
+      padding: 8px 4px 16px;
       scroll-behavior: smooth;
     }
     .carousel::-webkit-scrollbar { height: 10px; }
-    .carousel::-webkit-scrollbar-thumb { background: #c5ced3; border-radius: 8px; }
-    .slide {
+    .carousel::-webkit-scrollbar-thumb { background: #a8c5d8; border-radius: 8px; }
+
+    .plan-card-ad {
+      scroll-snap-align: start;
       background: var(--card);
       border-radius: 12px;
-      overflow: hidden;
-      scroll-snap-align: start;
       border: 1px solid var(--border);
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+      box-shadow: 0 4px 20px rgba(26, 43, 60, 0.08);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      min-height: 520px;
     }
-    .slide-image {
-      width: 100%;
-      aspect-ratio: 4 / 3;
-      background: #eef2f4;
+    .plan-card-ad__tier {
+      margin: 0;
+      padding: 18px 20px 12px;
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--xero-navy);
+      border-bottom: 1px solid var(--border);
+      background: linear-gradient(180deg, #fff 0%, #fafcfd 100%);
+    }
+    .plan-card-ad__media {
+      flex: 1;
+      min-height: 440px;
+      padding: 16px;
       display: flex;
       align-items: center;
       justify-content: center;
+      background: #f2f7fa;
     }
-    .slide-image img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
+    .plan-card-ad__media img {
+      max-width: 100%;
+      max-height: 520px;
+      width: auto;
+      height: auto;
+      object-fit: contain;
       display: block;
     }
-    .empty {
-      padding: 48px 24px;
+    .plan-card-ad__footer {
+      padding: 14px 20px 18px;
+      border-top: 1px solid var(--border);
       text-align: center;
-      color: var(--muted);
+      background: #fff;
+    }
+    .plan-card-ad__footer .btn-buy {
+      display: inline-block;
+      width: 100%;
+      max-width: 220px;
+      padding: 11px 20px;
+      border-radius: 6px;
+      background: var(--xero-green);
+      color: #fff;
+      font-weight: 700;
+      font-size: 0.9375rem;
+      border: none;
+      cursor: default;
+      margin-bottom: 8px;
+    }
+    .plan-card-ad__learn {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--xero-teal-hover);
+      text-decoration: underline;
+      cursor: default;
+    }
+
+    .empty {
+      padding: 40px 20px;
+      text-align: center;
+      color: var(--xero-muted);
       font-size: 0.9375rem;
     }
     .carousel-controls {
       display: none;
       gap: 10px;
       justify-content: center;
-      margin-top: 12px;
+      margin-top: 8px;
     }
     .carousel-controls.visible { display: flex; }
-    .carousel-controls .btn { font-size: 0.875rem; padding: 8px 16px; }
 
-    .plans-teaser {
-      max-width: 1120px;
-      margin: 48px auto 0;
-      padding: 0 24px 48px;
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 20px;
+    .demo-footnote {
+      max-width: 720px;
+      margin: 32px auto 0;
+      padding: 0 16px;
+      text-align: center;
+      font-size: 0.75rem;
+      color: var(--xero-muted);
+      line-height: 1.45;
     }
-    @media (max-width: 900px) {
-      .carousel { grid-auto-columns: calc((100% - 16px) / 2); }
-      .plans-teaser { grid-template-columns: 1fr; }
-    }
-    @media (max-width: 600px) {
-      .carousel { grid-auto-columns: 100%; }
-      .top-bar { flex-direction: column; align-items: flex-start; gap: 12px; }
-    }
-
-    .plan-card {
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 24px;
-      background: #fff;
-    }
-    .plan-card h3 { margin: 0 0 8px; font-size: 1.125rem; }
-    .plan-card .price { font-size: 1.5rem; font-weight: 700; color: var(--xero-navy); margin-bottom: 8px; }
-    .plan-card p { margin: 0; font-size: 0.875rem; color: var(--muted); }
 
     .site-footer {
       border-top: 1px solid var(--border);
-      padding: 24px;
+      padding: 28px 24px;
       text-align: center;
       font-size: 0.8125rem;
-      color: var(--muted);
+      color: var(--xero-muted);
+      background: #fff;
     }
-    .site-footer a { margin: 0 8px; }
+    .site-footer a { margin: 0 10px; color: var(--xero-teal-hover); }
+
+    @media (max-width: 960px) {
+      .carousel { grid-auto-columns: minmax(280px, calc((100% - 16px) / 2)); }
+    }
+    @media (max-width: 640px) {
+      .carousel { grid-auto-columns: minmax(260px, 92%); }
+      .plan-card-ad { min-height: 480px; }
+      .plan-card-ad__media { min-height: 380px; }
+      .plan-card-ad__media img { max-height: 420px; }
+      .site-header { flex-direction: column; align-items: flex-start; gap: 14px; }
+    }
   </style>
 </head>
 <body>
-  <header class="top-bar">
-    <span class="brand">RetailBank</span>
-    <div class="top-actions">
-      <a class="nav-link" href="/">Personalization app</a>
-      <a class="nav-link" href="/ads-carousel">Ads carousel</a>
+  <header class="site-header">
+    <a class="logo-xero" href="/xero-accounting-software" aria-label="Xero — home">Xero</a>
+    <div class="header-actions">
+      <span class="nav-tools">
+        <a href="/">Personalization app</a>
+        <a href="/ads-carousel">Ads carousel</a>
+      </span>
       <button type="button" class="btn btn-ghost" id="retryLoad">Reload offers</button>
-      <a class="btn btn-primary" href="#">Get started</a>
+      <a class="btn btn-outline" href="#">Log in</a>
+      <a class="btn btn-navy" href="#">Get one month free</a>
     </div>
   </header>
 
-  <section class="hero" aria-labelledby="hero-heading">
-    <h1 id="hero-heading">Accounting software that keeps you moving</h1>
-    <p class="lead">Automate admin, connect your tools, and get back to what matters—built for small business and retail banking demos.</p>
-    <div class="hero-bullets" role="list">
-      <span role="listitem">Automate routine tasks</span>
-      <span role="listitem">Integrate with your stack</span>
-      <span role="listitem">Clear view of cash flow</span>
+  <section class="intro" aria-labelledby="intro-heading">
+    <p class="intro__stat" id="intro-heading"><em>Beautiful</em> accounting software for small business.</p>
+    <div class="intro__bullets" role="list">
+      <span role="listitem">Automate the admin</span>
+      <span role="listitem">Connect with 1000+ apps</span>
+      <span role="listitem">Get back to what you love</span>
     </div>
-    <button type="button" class="btn btn-primary" id="heroCta">See plans</button>
+    <button type="button" class="btn btn-navy" id="heroCta">Get one month free</button>
   </section>
 
-  <div class="profile-strip">
-    <div class="profile-card">
-      <h2>Who is viewing this page?</h2>
-      <p class="sub">Personalization uses Salesforce Decisioning. Only the person’s name is shown here; the Individual ID is sent to the API.</p>
-      <div class="viewer-toggle" role="radiogroup" aria-label="Viewer profile">
-        <input type="radio" name="viewer" id="v-geoff" value="003Ws00000S4JcGIAV" checked />
-        <label for="v-geoff">Geoff Minor</label>
-        <input type="radio" name="viewer" id="v-edward" value="003Ws00000S4JcCIAV" />
-        <label for="v-edward">Edward Stamos</label>
-        <input type="radio" name="viewer" id="v-andy" value="003Ws00000S4JbrIAF" />
-        <label for="v-andy">Andy Perkins</label>
-        <input type="radio" name="viewer" id="v-jon" value="003Ws00000S4JcIIAV" />
-        <label for="v-jon">Jon Amos</label>
+  <section class="plans-band" id="plansSection" aria-labelledby="plans-heading">
+    <div class="plans-inner">
+      <h1 id="plans-heading">Plans to suit your business</h1>
+      <p class="sub">All pricing plans cover the accounting essentials, with room to grow.</p>
+      <div class="plans-ctas">
+        <a class="btn btn-navy" href="#">Buy now</a>
+        <a class="btn btn-outline" href="#">Get one month free</a>
       </div>
-      <p class="status-line" id="loadStatus" aria-live="polite"></p>
-    </div>
-  </div>
 
-  <section class="offers-section" aria-labelledby="offers-heading">
-    <div class="offers-inner">
-      <h2 id="offers-heading">Offers picked for you</h2>
-      <p class="section-lead">Images from <code>Offer_Treatment_Personalization</code> (dataspace <code>default</code>).</p>
+      <div class="viewer-panel">
+        <h2>Who is viewing this page?</h2>
+        <p class="hint">Salesforce Personalization (Decisioning). Names only here — Individual ID is sent to the API.</p>
+        <div class="viewer-toggle" role="radiogroup" aria-label="Viewer profile">
+          <input type="radio" name="viewer" id="v-geoff" value="003Ws00000S4JcGIAV" checked />
+          <label for="v-geoff">Geoff Minor</label>
+          <input type="radio" name="viewer" id="v-edward" value="003Ws00000S4JcCIAV" />
+          <label for="v-edward">Edward Stamos</label>
+          <input type="radio" name="viewer" id="v-andy" value="003Ws00000S4JbrIAF" />
+          <label for="v-andy">Andy Perkins</label>
+          <input type="radio" name="viewer" id="v-jon" value="003Ws00000S4JcIIAV" />
+          <label for="v-jon">Jon Amos</label>
+        </div>
+        <p class="status-line" id="loadStatus" aria-live="polite"></p>
+      </div>
+
+      <p class="section-kicker" id="offers-heading">
+        Personalized plan creative · <code>Offer_Treatment_Personalization</code> · dataspace <code>default</code>
+      </p>
+
       <div id="carouselContainer" class="carousel-wrap">
         <div class="empty" id="carouselPlaceholder">Loading personalized images…</div>
       </div>
@@ -311,31 +414,18 @@
         <button type="button" class="btn btn-ghost" id="scrollLeft">Previous</button>
         <button type="button" class="btn btn-ghost" id="scrollRight">Next</button>
       </div>
+
+      <p class="demo-footnote">
+        Demo page for Salesforce Personalization. Layout and naming echo Xero’s public marketing patterns; not affiliated with Xero Limited.
+        Plan tier labels (Early, Growing, Established) are shown for the first three slots; additional offers scroll horizontally.
+      </p>
     </div>
   </section>
 
-  <div class="plans-teaser">
-    <div class="plan-card">
-      <h3>Early</h3>
-      <div class="price">Demo</div>
-      <p>Essentials to track cash flow and stay organized.</p>
-    </div>
-    <div class="plan-card">
-      <h3>Growing</h3>
-      <div class="price">Demo</div>
-      <p>Automation and dashboards as you scale.</p>
-    </div>
-    <div class="plan-card">
-      <h3>Established</h3>
-      <div class="price">Demo</div>
-      <p>Advanced tools for larger teams.</p>
-    </div>
-  </div>
-
   <footer class="site-footer">
     <a href="/">Home</a>
-    <a href="/ads-carousel">Load Ad Images (full)</a>
-    <span>Retail Banking · Salesforce Personalization demo (layout inspired by accounting software landing patterns)</span>
+    <a href="/ads-carousel">Load Ad Images</a>
+    <span>Xero-style demo · Salesforce Personalization</span>
   </footer>
 
   <script>
@@ -344,6 +434,7 @@
       const DEFAULT_INDIVIDUAL_ID = '003Ws00000S4JcGIAV';
       const DATASPACE = 'default';
       const POINT_NAME = 'Offer_Treatment_Personalization';
+      const PLAN_TIERS = ['Early', 'Growing', 'Established'];
 
       const carouselContainer = document.getElementById('carouselContainer');
       const carouselControls = document.getElementById('carouselControls');
@@ -459,6 +550,11 @@
         return unique;
       }
 
+      function tierLabel(index) {
+        if (index < PLAN_TIERS.length) return PLAN_TIERS[index];
+        return 'Offer ' + (index + 1);
+      }
+
       function renderImageCarousel(ads) {
         const list = dedupeImageAds(ads.filter((a) => a && a.imageUrl));
         if (!list.length) {
@@ -474,24 +570,44 @@
         carousel.className = 'carousel';
         carousel.setAttribute('role', 'region');
         carousel.setAttribute('aria-roledescription', 'carousel');
-        carousel.setAttribute('aria-label', 'Personalized offer images');
+        carousel.setAttribute('aria-label', 'Personalized plan creative');
 
         list.forEach((ad, i) => {
-          const slide = document.createElement('div');
-          slide.className = 'slide';
-          const wrap = document.createElement('div');
-          wrap.className = 'slide-image';
+          const card = document.createElement('article');
+          card.className = 'plan-card-ad';
+
+          const title = document.createElement('h2');
+          title.className = 'plan-card-ad__tier';
+          title.textContent = tierLabel(i);
+
+          const media = document.createElement('div');
+          media.className = 'plan-card-ad__media';
           const img = document.createElement('img');
           img.src = ad.imageUrl;
-          img.alt = 'Personalized offer ' + (i + 1);
+          img.alt = 'Personalized plan creative — ' + tierLabel(i);
           img.loading = 'lazy';
           img.onerror = function () {
-            wrap.textContent = 'Image failed to load';
-            wrap.classList.add('empty');
+            media.textContent = 'Image failed to load';
+            media.classList.add('empty');
           };
-          wrap.appendChild(img);
-          slide.appendChild(wrap);
-          carousel.appendChild(slide);
+          media.appendChild(img);
+
+          const foot = document.createElement('div');
+          foot.className = 'plan-card-ad__footer';
+          const fakeBuy = document.createElement('span');
+          fakeBuy.className = 'btn-buy';
+          fakeBuy.textContent = 'Buy now';
+          const learn = document.createElement('span');
+          learn.className = 'plan-card-ad__learn';
+          learn.textContent = 'Learn more';
+          foot.appendChild(fakeBuy);
+          foot.appendChild(document.createElement('br'));
+          foot.appendChild(learn);
+
+          card.appendChild(title);
+          card.appendChild(media);
+          card.appendChild(foot);
+          carousel.appendChild(card);
         });
 
         carouselContainer.innerHTML = '';
@@ -567,7 +683,7 @@
 
       document.getElementById('retryLoad').addEventListener('click', loadAdImages);
       document.getElementById('heroCta').addEventListener('click', () => {
-        document.getElementById('offers-heading').scrollIntoView({ behavior: 'smooth' });
+        document.getElementById('plansSection').scrollIntoView({ behavior: 'smooth' });
       });
 
       loadAdImages();
