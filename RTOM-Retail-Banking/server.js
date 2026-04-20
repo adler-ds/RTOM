@@ -272,6 +272,10 @@ app.get('/ads-carousel-variables', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'ads-carousel-variables.html'));
 });
 
+app.get('/xero-accounting-software', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'xero-accounting-software.html'));
+});
+
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
