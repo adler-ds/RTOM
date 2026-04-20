@@ -221,7 +221,7 @@
       gap: 20px;
       overflow-x: auto;
       scroll-snap-type: x mandatory;
-      padding: 8px 4px 16px;
+      padding: 4px 2px 12px;
       scroll-behavior: smooth;
     }
     .carousel::-webkit-scrollbar { height: 10px; }
@@ -236,23 +236,26 @@
       overflow: hidden;
       display: flex;
       flex-direction: column;
+      align-items: center;
     }
     .plan-card-ad__media {
-      flex: 1;
-      min-height: 440px;
-      padding: 16px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      flex: 0 0 auto;
+      padding: 0;
+      margin: 0;
+      display: block;
+      line-height: 0;
       background: #f2f7fa;
+      width: fit-content;
+      max-width: 100%;
     }
     .plan-card-ad__media img {
-      max-width: 100%;
-      max-height: 520px;
+      max-width: min(100%, 100vw - 48px);
+      max-height: min(72vh, 640px);
       width: auto;
       height: auto;
       object-fit: contain;
       display: block;
+      vertical-align: top;
     }
 
     .empty {
@@ -284,8 +287,7 @@
     }
     @media (max-width: 640px) {
       .carousel { grid-auto-columns: minmax(260px, 92%); }
-      .plan-card-ad__media { min-height: 380px; }
-      .plan-card-ad__media img { max-height: 420px; }
+      .plan-card-ad__media img { max-height: min(65vh, 520px); }
       .site-header { flex-direction: column; align-items: flex-start; gap: 14px; }
     }
   </style>
